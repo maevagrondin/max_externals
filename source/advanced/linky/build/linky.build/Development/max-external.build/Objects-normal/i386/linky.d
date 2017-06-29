@@ -1,0 +1,34 @@
+dependencies: \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/linky.c \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/macho-prefix.pch \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_common.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/max_types.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_prefix.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_mess.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_maxtypes.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_byteorder.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_sysmem.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_sysfile.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_systime.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_expr.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_path.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_wind.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_proto.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_atomarray.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_atombuf.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_obstring.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_hashtab.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_linklist.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_atomic.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_dictionary.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_obex_util.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/commonsyms.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_strings.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_obex.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_preprocessor.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_systhread.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_drag.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/jpatcher_api.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/jpatcher_syms.h \
+  /Users/interactivation/Downloads/max-sdk-7.3.3/source/advanced/linky/../../c74support/max-includes/ext_charset.h
