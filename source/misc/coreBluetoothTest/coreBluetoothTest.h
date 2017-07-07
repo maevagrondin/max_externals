@@ -9,7 +9,8 @@
     long am_valright;
     long am_res;
     long am_cb;
-    CBCentralManager * centralManager;
+    CBCentralManager * am_centralManager;
+    NSMutableArray * am_peripherals;
 }
 
 
