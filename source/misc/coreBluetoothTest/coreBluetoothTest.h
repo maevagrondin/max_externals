@@ -3,7 +3,7 @@
 
 #import <CoreBluetooth/CoreBluetooth.h>
 
-@interface MinMax : NSObject <CBCentralManagerDelegate>{
+@interface MinMax : NSObject <CBCentralManagerDelegate, CBPeripheralDelegate>{
     long am_list[MAX_SIZE];
     long am_count;
     long am_valright;
@@ -15,7 +15,7 @@
 
 
 
-- (void) am_new: (long) value; 
+- (void) am_new: (long) value;
 - (void) am_list:(Atom *)av andLength:(short)ac;
 - (void) am_in1:(long)value;
 - (void) am_bang;

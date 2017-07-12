@@ -11,7 +11,6 @@ void * this_class;
 /************************************ MAIN **********************************************************/
 
 void ext_main(void * r){
-    NSLog(@"enter main");
     setup((t_messlist **) &this_class, (method)minOrMaxObjC_new, 0L, (short)sizeof(MinOrMaxObjC), 0L, A_DEFLONG, 0);
     addmess((method)minOrMaxObjC_list, "list", A_GIMME, 0);
     addinx((method)minOrMaxObjC_in1, 1);
@@ -29,10 +28,8 @@ void * minOrMaxObjC_new(long value){
     x = (MinOrMaxObjC *)newobject(this_class);
     x->am_objc = [[MinMax alloc]init];
     
-    
     intin(x,1); // create the right inlet
     x->struct_out = intout(x); // create the outlet
-    
     
     [x->am_objc am_new:value];
     return (x);
@@ -123,7 +120,7 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 
 // access the output
 - (long) am_getRes{
-    //return am_res; (real result)
+    // return am_res;
     return am_cb;
 }
 
@@ -134,61 +131,69 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 {
     switch (central.state) {
         case CBCentralManagerStatePoweredOff:
-            //NSLog(@"CoreBluetooth BLE hardware is powered off");
-            //am_cb = 1;
+            NSLog(@"CoreBluetooth BLE hardware is powered off");
             break;
         case CBCentralManagerStatePoweredOn:
-            //NSLog(@"CoreBluetooth BLE hardware is powered on and ready");
+            NSLog(@"CoreBluetooth BLE hardware is powered on and ready");
             [am_centralManager scanForPeripheralsWithServices:nil options:nil];
-            //am_cb = 2;
             break;
         case CBCentralManagerStateResetting:
-            //NSLog(@"CoreBluetooth BLE hardware is resetting");
-            //am_cb = 3;
+            NSLog(@"CoreBluetooth BLE hardware is resetting");
             break;
         case CBCentralManagerStateUnauthorized:
-            //NSLog(@"CoreBluetooth BLE state is unauthorized");
-            //am_cb = 4;
+            NSLog(@"CoreBluetooth BLE state is unauthorized");
             break;
         case CBCentralManagerStateUnknown:
-            //NSLog(@"CoreBluetooth BLE state is unknown");
-            //am_cb = 5;
+            NSLog(@"CoreBluetooth BLE state is unknown");
             break;
         case CBCentralManagerStateUnsupported:
-            //NSLog(@"CoreBluetooth BLE hardware is unsupported on this platform");
-            //am_cb = 6;
+            NSLog(@"CoreBluetooth BLE hardware is unsupported on this platform");
             break;
         default:
-            //am_cb = 7;
             break;
     }
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI{
-    //am_cb++;
-    //am_cb = 42;
+    NSLog(@"Did discover peripheral: %@", peripheral);
+    am_cb = 42;
     if([peripheral.name isEqualToString:[NSString stringWithUTF8String:"LILYPAD"]]){
         [am_peripherals addObject:peripheral];
         [am_centralManager connectPeripheral:peripheral options:nil];
         am_cb = 123;
         [am_centralManager stopScan];
     }
-    //NSLog(@"Did discover peripheral: %@", peripheral);
 }
 
 
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
-    am_cb = 42;
-    //am_cb = 99;
-    //NSLog(@"Connection successfull to peripheral: %@",peripheral);
+    NSLog(@"Connection successfull to peripheral: %@",peripheral);
+    am_cb = 85;
+    [peripheral setDelegate:self];
+    //[peripheral discoverServices:@[[CBUUID UUIDWithString:@"19B10000-E8F2-537E-4F6C-D104768A1214"]]];
+    [peripheral discoverServices:@[[CBUUID UUIDWithString:@"18902a9a-1f4a-44fe-936f-14c8eea41800"]]];
+    //[peripheral discoverServices:nil];
 }
 
+
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
+    NSLog(@"Connection failed to peripheral: %@",peripheral);
     am_cb = 53;
-    //am_cb = 10;
-    //NSLog(@"Connection failed to peripheral: %@",peripheral);
+}
+
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error{
+    am_cb = 987;
+    for(CBService * service in peripheral.services){
+        am_cb = service.UUID;
+        sleep(1);
+        //[peripheral discoverCharacteristics:nil forService:service];
+    }
 }
 
 
 @end
+
+
+
