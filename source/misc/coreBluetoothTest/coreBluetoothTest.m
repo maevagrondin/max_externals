@@ -172,8 +172,9 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
     am_cb = 85;
     [peripheral setDelegate:self];
     //[peripheral discoverServices:@[[CBUUID UUIDWithString:@"19B10000-E8F2-537E-4F6C-D104768A1214"]]];
-    [peripheral discoverServices:@[[CBUUID UUIDWithString:@"18902a9a-1f4a-44fe-936f-14c8eea41800"]]];
+    //[peripheral discoverServices:@[[CBUUID UUIDWithString:@"18902a9a-1f4a-44fe-936f-14c8eea41800"]]];
     //[peripheral discoverServices:nil];
+    [peripheral discoverServices:@[[CBUUID UUIDWithString:@"FE84"]]];
 }
 
 
@@ -186,12 +187,24 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error{
     am_cb = 987;
     for(CBService * service in peripheral.services){
-        am_cb = service.UUID;
-        sleep(1);
-        //[peripheral discoverCharacteristics:nil forService:service];
+        am_cb = 14;
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2221"]] forService:service];
     }
 }
 
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error{
+    for(CBCharacteristic * characteristic in service.characteristics){
+        am_cb = 7452;
+        [peripheral setNotifyValue:YES forCharacteristic:characteristic];
+        
+    }
+}
+
+
+- (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
+    am_cb = (int) [characteristic.value bytes];
+}
 
 @end
 
