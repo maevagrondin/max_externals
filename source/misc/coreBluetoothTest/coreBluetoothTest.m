@@ -171,9 +171,6 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
     NSLog(@"Connection successfull to peripheral: %@",peripheral);
     am_cb = 85;
     [peripheral setDelegate:self];
-    //[peripheral discoverServices:@[[CBUUID UUIDWithString:@"19B10000-E8F2-537E-4F6C-D104768A1214"]]];
-    //[peripheral discoverServices:@[[CBUUID UUIDWithString:@"18902a9a-1f4a-44fe-936f-14c8eea41800"]]];
-    //[peripheral discoverServices:nil];
     [peripheral discoverServices:@[[CBUUID UUIDWithString:@"FE84"]]];
 }
 
@@ -203,7 +200,7 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
-    am_cb = (int) [characteristic.value bytes];
+    am_cb = *(int *)([characteristic.value bytes]);
 }
 
 @end
