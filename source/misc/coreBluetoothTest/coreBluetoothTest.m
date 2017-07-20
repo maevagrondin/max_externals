@@ -156,11 +156,11 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI{
     NSLog(@"Did discover peripheral: %@", peripheral);
-    am_cb = 42;
+    //am_cb = 42;
     if([peripheral.name isEqualToString:[NSString stringWithUTF8String:"LILYPAD"]]){
         [am_peripherals addObject:peripheral];
         [am_centralManager connectPeripheral:peripheral options:nil];
-        am_cb = 123;
+        //am_cb = 123;
         [am_centralManager stopScan];
     }
 }
@@ -169,7 +169,7 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
     NSLog(@"Connection successfull to peripheral: %@",peripheral);
-    am_cb = 85;
+    //am_cb = 85;
     [peripheral setDelegate:self];
     [peripheral discoverServices:@[[CBUUID UUIDWithString:@"FE84"]]];
 }
@@ -177,14 +177,14 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
     NSLog(@"Connection failed to peripheral: %@",peripheral);
-    am_cb = 53;
+    //am_cb = 53;
 }
 
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error{
-    am_cb = 987;
+    //am_cb = 987;
     for(CBService * service in peripheral.services){
-        am_cb = 14;
+        //am_cb = 14;
         [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2221"]] forService:service];
     }
 }
@@ -192,7 +192,7 @@ void minOrMaxObjC_bang(MinOrMaxObjC * x){
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error{
     for(CBCharacteristic * characteristic in service.characteristics){
-        am_cb = 7452;
+        //am_cb = 7452;
         [peripheral setNotifyValue:YES forCharacteristic:characteristic];
         [am_centralManager scanForPeripheralsWithServices:nil options:nil];
     }
