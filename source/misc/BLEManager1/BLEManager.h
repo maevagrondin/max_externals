@@ -14,11 +14,13 @@
     long manager_res;
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
+    t_atom manager_array[MAX_PIN];
 }
 
 - (void) manager_new;
 - (long) manager_bang;
 - (long) manager_getCount;
+- (t_atom *) manager_getArray;
 
 @end
 
@@ -34,7 +36,6 @@ typedef struct BLE{
     void * ble_output;
     void * ble_clock;
     long ble_interval;
-    t_atom ble_array[MAX_SIZE];
 } BLE;
 
 

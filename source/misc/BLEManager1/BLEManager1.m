@@ -1,5 +1,6 @@
 #include "ext.h"
 #define MAX_SIZE 1024
+#define MAX_PIN 7
 #include "BLEManager.h"
 #include <objc/runtime.h>
 #include <Foundation/Foundation.h>
@@ -37,17 +38,6 @@ void * BLE_new(long value){
     x->ble_clock = clock_new(x, (method)BLE_bang);
     x->ble_interval = 1000;
     
-    long my_array[3];
-    
-    my_array[0] = 42;
-    my_array[1] = 674;
-    my_array[2] = 8;
-    
-    for(int i=0; i<3; i++){
-        atom_setlong(x->ble_array+i, my_array[i]);
-    }
-    
-    
     return (x);
 }
 
@@ -56,8 +46,8 @@ void * BLE_new(long value){
 //TODO
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
-    long res = [x->ble_manager manager_bang];
-    outlet_list(x->ble_output, NULL, 3, x->ble_array);
+    //long res = [x->ble_manager manager_bang];
+        outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
 }
 
 
@@ -91,6 +81,10 @@ void BLE_interval(BLE * x, long value){
     manager_centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     manager_peripherals = [NSMutableArray new];
     manager_res = 0;
+    
+    for(int i=0; i<MAX_PIN; i++){
+        atom_setlong(manager_array+i, 0);
+    }
 }
 
 
@@ -101,6 +95,10 @@ void BLE_interval(BLE * x, long value){
 
 - (long)manager_getCount{
     return manager_count;
+}
+
+- (t_atom *) manager_getArray{
+    return manager_array;
 }
 
 
@@ -170,7 +168,18 @@ void BLE_interval(BLE * x, long value){
 
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
-    manager_res = *(int *)([characteristic.value bytes]);
+    if((*(int *)([characteristic.value bytes])) == 1){
+        for(int i=1; i<=(MAX_PIN/2+1); i++){
+            int value = *(((int *)([characteristic.value bytes]))+i);
+            atom_setlong(manager_array+i-1, value);
+        }
+    }
+    if((*(int *)([characteristic.value bytes])) == 2){
+        for(int i=1; i<=(MAX_PIN/2); i++){
+            int value = *(((int *)([characteristic.value bytes]))+i);
+            atom_setlong(manager_array+(MAX_PIN/2+1)+i-1, value);
+        }
+    }
 }
 
 @end
