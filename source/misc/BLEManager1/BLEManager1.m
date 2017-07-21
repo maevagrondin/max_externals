@@ -46,8 +46,7 @@ void * BLE_new(long value){
 //TODO
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
-    //long res = [x->ble_manager manager_bang];
-        outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
+    outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
 }
 
 
@@ -137,10 +136,9 @@ void BLE_interval(BLE * x, long value){
         [manager_peripherals addObject:peripheral];
         manager_count++;
         [manager_centralManager connectPeripheral:peripheral options:nil];
-        [manager_centralManager stopScan];
+        //[manager_centralManager stopScan];
     }
 }
-
 
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
@@ -150,6 +148,11 @@ void BLE_interval(BLE * x, long value){
 
 
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
+}
+
+
+- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
+    [manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
 
