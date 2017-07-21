@@ -9,18 +9,16 @@
 /************************************ OBJECT DECLARATION ********************************************/
 
 @interface Manager : NSObject <CBCentralManagerDelegate, CBPeripheralDelegate>{
-    long manager_values[MAX_SIZE];
-    long manager_count;
-    long manager_res;
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
-    t_atom manager_array[MAX_PIN];
+    t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
+    int manager_output[MAX_PIN]; //stores user values (to be sent to peripheral)
 }
 
 - (void) manager_new;
-- (long) manager_bang;
-- (long) manager_getCount;
 - (t_atom *) manager_getArray;
+- (void) manager_setOutput:(int)index with_value:(long)value;
+- (void) manager_sendOutput;
 
 @end
 
@@ -49,6 +47,6 @@ void BLE_inlet(BLE * x, long value);
 void BLE_start(BLE * x);
 void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
-
+void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
 
 #endif

@@ -18,6 +18,7 @@ void ext_main(void * r){
     addmess((method)BLE_start, "start", A_DEFSYM, 0);
     addmess((method)BLE_stop, "stop", A_DEFSYM, 0);
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
+    addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
 }
 
 
@@ -42,8 +43,6 @@ void * BLE_new(long value){
 }
 
 
-
-//TODO
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
     outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
@@ -66,7 +65,14 @@ void BLE_interval(BLE * x, long value){
     x->ble_interval = value;
 }
 
-
+void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
+    if(ac>MAX_PIN)
+        ac=MAX_PIN;
+    for(int i=0; i<ac; i++){
+        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
+    }
+    [x->ble_manager manager_sendOutput];
+}
 
 
 /************************************ IMPLEMENTATION OBJET ******************************************/
@@ -74,12 +80,9 @@ void BLE_interval(BLE * x, long value){
 @implementation Manager
 
 
-// init the object
 - (void) manager_new{
-    manager_count = 0;
     manager_centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     manager_peripherals = [NSMutableArray new];
-    manager_res = 0;
     
     for(int i=0; i<MAX_PIN; i++){
         atom_setlong(manager_array+i, 0);
@@ -87,17 +90,24 @@ void BLE_interval(BLE * x, long value){
 }
 
 
-// calculate and set the output
-- (long) manager_bang{
-    return manager_res;
-}
-
-- (long)manager_getCount{
-    return manager_count;
-}
-
 - (t_atom *) manager_getArray{
     return manager_array;
+}
+
+
+- (void) manager_setOutput:(int)index with_value:(long)value{
+    manager_output[index] = value;
+}
+
+- (void) manager_sendOutput{
+    /*CBPeripheral * periph = manager_peripherals[0];
+    for(CBService * service in periph.services){
+        for(CBCharacteristic * c in service.characteristics){
+            if(c.UUID == [CBUUID UUIDWithString:@"2222"]){
+                //[periph writeValue:1 forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
+            }
+        }
+    }*/
 }
 
 
@@ -134,9 +144,7 @@ void BLE_interval(BLE * x, long value){
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI{
     if([peripheral.name isEqualToString:[NSString stringWithUTF8String:"LILYPAD"]]){
         [manager_peripherals addObject:peripheral];
-        manager_count++;
         [manager_centralManager connectPeripheral:peripheral options:nil];
-        //[manager_centralManager stopScan];
     }
 }
 
@@ -158,7 +166,8 @@ void BLE_interval(BLE * x, long value){
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error{
     for(CBService * service in peripheral.services){
-        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2221"]] forService:service];
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2221"]] forService:service]; //read
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2222"]] forService:service]; //write
     }
 }
 
