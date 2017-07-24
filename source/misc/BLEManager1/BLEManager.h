@@ -4,8 +4,7 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 
-struct BLE;
-typedef struct BLE BLE;
+
 
 /************************************ OBJECT DECLARATION ********************************************/
 
@@ -13,13 +12,13 @@ typedef struct BLE BLE;
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
     t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
-    float manager_output[MAX_PIN]; //stores user values (to be sent to peripheral)
+    bool manager_output[3]; //stores user values (to be sent to peripheral)
 }
 
 - (void) manager_new;
 - (t_atom *) manager_getArray;
-- (void) manager_setOutput:(int)index with_value:(float)value;
-- (void) manager_sendOutput:(BLE *)x;
+- (void) manager_setOutput:(int)index with_value:(bool)value;
+- (void) manager_sendOutput;
 
 @end
 

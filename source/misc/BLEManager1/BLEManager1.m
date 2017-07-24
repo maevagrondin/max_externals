@@ -66,12 +66,12 @@ void BLE_interval(BLE * x, long value){
 }
 
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
-    if(ac>MAX_PIN)
-        ac=MAX_PIN;
-    for(int i=0; i<ac; i++){
-        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_float];
+    if(ac>3)
+        ac=3;
+    for(int i=1; i<ac+1; i++){
+        [x->ble_manager manager_setOutput:i-1 with_value:av[i].a_w.w_long];
     }
-    [x->ble_manager manager_sendOutput:x];
+    [x->ble_manager manager_sendOutput];
 }
 
 
@@ -87,6 +87,9 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(int i=0; i<MAX_PIN; i++){
         atom_setfloat(manager_array+i, 0);
     }
+    for(int i=0; i<3; i++){
+        manager_output[i] = 0;
+    }
 }
 
 
@@ -95,18 +98,16 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 
-- (void) manager_setOutput:(int)index with_value:(float)value{
+- (void) manager_setOutput:(int)index with_value:(bool)value{
     manager_output[index] = value;
 }
 
-- (void) manager_sendOutput:(BLE *)x{
+- (void) manager_sendOutput{
     CBPeripheral * periph = manager_peripherals[0];
     for(CBService * service in periph.services){
         for(CBCharacteristic * c in service.characteristics){
             if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]]){
-                char * my_string = (char *) manager_output;
-                NSString * str = [NSString stringWithUTF8String:my_string];
-                NSData * data = [str dataUsingEncoding:NSUTF8StringEncoding];
+                NSData * data = [NSData dataWithBytes:&manager_output length:sizeof(manager_output)];
                 [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
             }
         }
