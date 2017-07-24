@@ -37,7 +37,7 @@ void * BLE_new(long value){
     
     [x->ble_manager manager_new];
     x->ble_clock = clock_new(x, (method)BLE_bang);
-    x->ble_interval = 1000;
+    x->ble_interval = 100;
     
     return (x);
 }
@@ -49,9 +49,9 @@ void BLE_bang(BLE * x){
 }
 
 
-void BLE_inlet(BLE * x, long value){
+/*void BLE_inlet(BLE * x, long value){
     BLE_bang(x);
-}
+}*/
 
 void BLE_start(BLE * x){
     BLE_bang(x);
@@ -69,7 +69,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     if(ac>MAX_PIN)
         ac=MAX_PIN;
     for(int i=0; i<ac; i++){
-        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
+        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_float];
     }
     [x->ble_manager manager_sendOutput:x];
 }
@@ -85,7 +85,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_peripherals = [NSMutableArray new];
     
     for(int i=0; i<MAX_PIN; i++){
-        atom_setlong(manager_array+i, 0);
+        atom_setfloat(manager_array+i, 0);
     }
 }
 
@@ -95,7 +95,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 
-- (void) manager_setOutput:(int)index with_value:(long)value{
+- (void) manager_setOutput:(int)index with_value:(float)value{
     manager_output[index] = value;
 }
 
@@ -183,16 +183,16 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
-    if((*(int *)([characteristic.value bytes])) == 1){
+    if((*(float *)([characteristic.value bytes])) == 1){
         for(int i=1; i<=(MAX_PIN/2+1); i++){
-            int value = *(((int *)([characteristic.value bytes]))+i);
-            atom_setlong(manager_array+i-1, value);
+            int value = *(((float *)([characteristic.value bytes]))+i);
+            atom_setfloat(manager_array+i-1, value);
         }
     }
-    if((*(int *)([characteristic.value bytes])) == 2){
+    if((*(float *)([characteristic.value bytes])) == 2){
         for(int i=1; i<=(MAX_PIN/2); i++){
-            int value = *(((int *)([characteristic.value bytes]))+i);
-            atom_setlong(manager_array+(MAX_PIN/2+1)+i-1, value);
+            int value = *(((float *)([characteristic.value bytes]))+i);
+            atom_setfloat(manager_array+(MAX_PIN/2+1)+i-1, value);
         }
     }
 }

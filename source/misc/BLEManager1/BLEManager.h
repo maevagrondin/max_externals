@@ -13,12 +13,12 @@ typedef struct BLE BLE;
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
     t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
-    int manager_output[MAX_PIN]; //stores user values (to be sent to peripheral)
+    float manager_output[MAX_PIN]; //stores user values (to be sent to peripheral)
 }
 
 - (void) manager_new;
 - (t_atom *) manager_getArray;
-- (void) manager_setOutput:(int)index with_value:(long)value;
+- (void) manager_setOutput:(int)index with_value:(float)value;
 - (void) manager_sendOutput:(BLE *)x;
 
 @end
@@ -40,7 +40,7 @@ typedef struct BLE{
 /************************************ FUNCTION DECLARATION *******************************************/
 void * BLE_new(long value);
 void BLE_bang(BLE * x);
-void BLE_inlet(BLE * x, long value);
+//void BLE_inlet(BLE * x, long value);
 void BLE_start(BLE * x);
 void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
