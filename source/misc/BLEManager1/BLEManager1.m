@@ -71,7 +71,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(int i=0; i<ac; i++){
         [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
     }
-    [x->ble_manager manager_sendOutput];
+    [x->ble_manager manager_sendOutput:x];
 }
 
 
@@ -99,15 +99,18 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_output[index] = value;
 }
 
-- (void) manager_sendOutput{
-    /*CBPeripheral * periph = manager_peripherals[0];
+- (void) manager_sendOutput:(BLE *)x{
+    CBPeripheral * periph = manager_peripherals[0];
     for(CBService * service in periph.services){
         for(CBCharacteristic * c in service.characteristics){
-            if(c.UUID == [CBUUID UUIDWithString:@"2222"]){
-                //[periph writeValue:1 forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
+            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]]){
+                char * my_string = (char *) manager_output;
+                NSString * str = [NSString stringWithUTF8String:my_string];
+                NSData * data = [str dataUsingEncoding:NSUTF8StringEncoding];
+                [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
             }
         }
-    }*/
+    }
 }
 
 
@@ -160,7 +163,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
-    [manager_centralManager connectPeripheral:peripheral options:nil];
+    //[manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
 

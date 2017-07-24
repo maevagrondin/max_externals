@@ -4,7 +4,8 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 
-
+struct BLE;
+typedef struct BLE BLE;
 
 /************************************ OBJECT DECLARATION ********************************************/
 
@@ -18,11 +19,9 @@
 - (void) manager_new;
 - (t_atom *) manager_getArray;
 - (void) manager_setOutput:(int)index with_value:(long)value;
-- (void) manager_sendOutput;
+- (void) manager_sendOutput:(BLE *)x;
 
 @end
-
-
 
 
 
@@ -38,8 +37,6 @@ typedef struct BLE{
 
 
 
-
-
 /************************************ FUNCTION DECLARATION *******************************************/
 void * BLE_new(long value);
 void BLE_bang(BLE * x);
@@ -48,5 +45,8 @@ void BLE_start(BLE * x);
 void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
+
+
+
 
 #endif
