@@ -1,6 +1,4 @@
 #include "ext.h"
-#define MAX_SIZE 1024
-#define MAX_PIN 7
 #include "BLEManager.h"
 #include <objc/runtime.h>
 #include <Foundation/Foundation.h>
@@ -14,7 +12,6 @@ void * this_class;
 void ext_main(void * r){
     setup((t_messlist **) &this_class, (method)BLE_new, 0L, (short)sizeof(BLE), 0L, A_DEFLONG, 0);
     addbang((method)BLE_bang);
-    //addint((method)BLE_inlet);
     addmess((method)BLE_start, "start", A_DEFSYM, 0);
     addmess((method)BLE_stop, "stop", A_DEFSYM, 0);
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
@@ -49,10 +46,6 @@ void BLE_bang(BLE * x){
 }
 
 
-/*void BLE_inlet(BLE * x, long value){
-    BLE_bang(x);
-}*/
-
 void BLE_start(BLE * x){
     BLE_bang(x);
 }
@@ -66,8 +59,8 @@ void BLE_interval(BLE * x, long value){
 }
 
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
-    if(ac>3)
-        ac=3;
+    if(ac>MAX_OUTPUT)
+        ac=MAX_OUTPUT;
     for(int i=1; i<ac+1; i++){
         [x->ble_manager manager_setOutput:i-1 with_value:av[i].a_w.w_long];
     }
@@ -87,7 +80,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(int i=0; i<MAX_PIN; i++){
         atom_setfloat(manager_array+i, 0);
     }
-    for(int i=0; i<3; i++){
+    for(int i=0; i<MAX_OUTPUT; i++){
         manager_output[i] = 0;
     }
 }
@@ -164,7 +157,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
-    //[manager_centralManager connectPeripheral:peripheral options:nil];
+    [manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
 

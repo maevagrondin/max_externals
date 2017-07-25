@@ -3,7 +3,8 @@
 
 #import <CoreBluetooth/CoreBluetooth.h>
 
-
+#define MAX_PIN 7
+#define MAX_OUTPUT 8
 
 
 /************************************ OBJECT DECLARATION ********************************************/
@@ -12,7 +13,7 @@
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
     t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
-    bool manager_output[3]; //stores user values (to be sent to peripheral)
+    bool manager_output[MAX_OUTPUT]; //stores user values (to be sent to peripheral)
 }
 
 - (void) manager_new;
@@ -39,7 +40,6 @@ typedef struct BLE{
 /************************************ FUNCTION DECLARATION *******************************************/
 void * BLE_new(long value);
 void BLE_bang(BLE * x);
-//void BLE_inlet(BLE * x, long value);
 void BLE_start(BLE * x);
 void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
