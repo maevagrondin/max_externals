@@ -14,12 +14,14 @@
     NSMutableArray * manager_peripherals;
     t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
     bool manager_output[MAX_OUTPUT]; //stores user values (to be sent to peripheral)
+    int manager_connected;
 }
 
 - (void) manager_new;
 - (t_atom *) manager_getArray;
 - (void) manager_setOutput:(int)index with_value:(bool)value;
 - (void) manager_sendOutput;
+- (bool) manager_isConnected;
 
 @end
 

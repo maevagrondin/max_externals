@@ -43,6 +43,8 @@ void * BLE_new(long value){
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
     outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
+    if([x->ble_manager manager_isConnected])
+        [x->ble_manager manager_sendOutput];
 }
 
 
@@ -61,10 +63,9 @@ void BLE_interval(BLE * x, long value){
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     if(ac>MAX_OUTPUT)
         ac=MAX_OUTPUT;
-    for(int i=1; i<ac+1; i++){
-        [x->ble_manager manager_setOutput:i-1 with_value:av[i].a_w.w_long];
+    for(int i=0; i<ac; i++){
+        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
     }
-    [x->ble_manager manager_sendOutput];
 }
 
 
@@ -83,11 +84,16 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(int i=0; i<MAX_OUTPUT; i++){
         manager_output[i] = 0;
     }
+    manager_connected = 0;
 }
 
 
 - (t_atom *) manager_getArray{
     return manager_array;
+}
+
+- (bool) manager_isConnected{
+    return manager_connected;
 }
 
 
@@ -149,6 +155,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
     [peripheral setDelegate:self];
     [peripheral discoverServices:@[[CBUUID UUIDWithString:@"FE84"]]];
+    manager_connected = 1;
 }
 
 
@@ -157,6 +164,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
+     manager_connected = 0;
     [manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
