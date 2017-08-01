@@ -154,7 +154,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
     [peripheral setDelegate:self];
-    [peripheral discoverServices:@[[CBUUID UUIDWithString:@"FE84"]]];
+    [peripheral discoverServices:nil];
     manager_connected = 1;
 }
 
