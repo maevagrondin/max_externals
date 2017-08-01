@@ -49,7 +49,7 @@ void BLE_bang(BLE * x);
 void BLE_start(BLE * x);
 void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
-void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
+//void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
 
 
 

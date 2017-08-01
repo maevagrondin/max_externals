@@ -15,7 +15,7 @@ void ext_main(void * r){
     addmess((method)BLE_start, "start", A_DEFSYM, 0);
     addmess((method)BLE_stop, "stop", A_DEFSYM, 0);
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
-    addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
+    //addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
 }
 
 
@@ -32,7 +32,6 @@ void * BLE_new(long value){
     
     // create the outlet
     x->ble_output = listout(x);
-    
   
     x->ble_clock = clock_new(x, (method)BLE_bang);
     x->ble_interval = 100;
@@ -41,12 +40,12 @@ void * BLE_new(long value){
 }
 
 
-//TODO
+
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
     outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
-    if([x->ble_manager manager_isConnected])
-        [x->ble_manager manager_sendOutput];
+    /*if([x->ble_manager manager_isConnected])
+        [x->ble_manager manager_sendOutput];*/
 }
 
 
@@ -62,13 +61,13 @@ void BLE_interval(BLE * x, long value){
     x->ble_interval = value;
 }
 
-void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
+/*void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     if(ac>MAX_OUTPUT)
         ac=MAX_OUTPUT;
     for(int i=0; i<ac; i++){
         [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
     }
-}
+}*/
 
 
 /************************************ IMPLEMENTATION OBJET ******************************************/
@@ -83,9 +82,9 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(int i=0; i<MAX_PIN; i++){
         atom_setfloat(manager_input+i, 0);
     }
-    for(int i=0; i<MAX_OUTPUT; i++){
+    /*for(int i=0; i<MAX_OUTPUT; i++){
         manager_output[i] = 0;
-    }
+    }*/
     manager_connected = 0;
 }
 
@@ -99,11 +98,11 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 
-- (void) manager_setOutput:(int)index with_value:(bool)value{
+/*- (void) manager_setOutput:(int)index with_value:(bool)value{
     manager_output[index] = value;
-}
+}*/
 
-- (void) manager_sendOutput{
+/*- (void) manager_sendOutput{
     CBPeripheral * periph = manager_peripherals[0];
     for(CBService * service in periph.services){
         for(CBCharacteristic * c in service.characteristics){
@@ -113,7 +112,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
             }
         }
     }
-}
+}*/
 
 
 
