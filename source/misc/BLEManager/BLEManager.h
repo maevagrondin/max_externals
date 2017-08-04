@@ -5,7 +5,7 @@
 
 #define MAX_PIN 7
 #define MAX_OUTPUT 8
-#define MAX_DEVICE 2
+#define MAX_PERIPHERAL 2
 
 
 /************************************ OBJECT DECLARATION ********************************************/
@@ -13,19 +13,19 @@
 @interface Manager : NSObject <CBCentralManagerDelegate, CBPeripheralDelegate>{
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
-    t_atom manager_input[MAX_DEVICE][MAX_PIN]; //stores pin values (sent by peripheral)
-    bool manager_output[MAX_DEVICE][MAX_OUTPUT]; //stores user values (to be sent to peripheral)
-    int manager_connected[MAX_DEVICE];
-    int manager_nb_peripherals;
+    t_atom manager_input[MAX_PERIPHERAL][MAX_PIN]; //stores pin values (sent by peripheral)
+    bool manager_output[MAX_PERIPHERAL][MAX_OUTPUT]; //stores user values (to be sent to peripheral)
+    //bool manager_connected[MAX_PERIPHERAL];
     NSMutableDictionary * manager_uuid_to_index;
+    t_atom manager_return[MAX_PIN+1];
+    int manager_nb_peripherals;
 }
 
-//TODO
 - (void) manager_new;
-- (t_atom *) manager_getArray;
-- (void) manager_setOutput:(int)index with_value:(bool)value;
-- (void) manager_sendOutput;
-- (bool) manager_isConnected;
+- (t_atom *) manager_getArray:(int)index;
+//- (void) manager_setOutput:(int)index with_value:(bool)value;
+//- (void) manager_sendOutput;
+//- (bool) manager_isConnected;
 
 @end
 

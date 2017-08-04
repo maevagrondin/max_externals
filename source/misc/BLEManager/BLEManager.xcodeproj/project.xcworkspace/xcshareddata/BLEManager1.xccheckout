@@ -14,7 +14,7 @@
 		<string>https://github.com/maevagrondin/max_externals.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>source/misc/BLEManager/BLEManager1.xcodeproj</string>
+	<string>source/misc/BLEManager1/BLEManager1.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>8DAE695C4F360E0ECFBAC2BC21757636A14C87C2</key>

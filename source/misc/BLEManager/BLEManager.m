@@ -24,26 +24,22 @@ void ext_main(void * r){
 /************************************ IMPLEMENTATION ************************************************/
 
 void * BLE_new(long value){
-    // create object
     BLE * x;
     x = (BLE *)newobject(this_class);
     x->ble_manager = [[Manager alloc]init];
-    [x->ble_manager manager_new];
-    
-    // create the outlet
     x->ble_output = listout(x);
-  
+    [x->ble_manager manager_new];
     x->ble_clock = clock_new(x, (method)BLE_bang);
     x->ble_interval = 100;
-    
     return (x);
 }
 
 
-
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
-    outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
+    for(int i=0; i<MAX_PERIPHERAL; i++){
+        outlet_list(x->ble_output, NULL, MAX_PIN+1, [x->ble_manager manager_getArray:i]);
+    }
     /*if([x->ble_manager manager_isConnected])
         [x->ble_manager manager_sendOutput];*/
 }
@@ -78,24 +74,39 @@ void BLE_interval(BLE * x, long value){
 - (void) manager_new{
     manager_centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     manager_peripherals = [NSMutableArray new];
+    manager_uuid_to_index = [[NSMutableDictionary alloc] initWithCapacity:MAX_PERIPHERAL];
+    manager_nb_peripherals = 0;
+    
+    for(int i=0; i<MAX_PERIPHERAL; i++){
+        for(int j=0; j<MAX_PIN; j++){
+            atom_setfloat((t_atom *)manager_input+(i*MAX_PIN)+j, 0);
+        }
+    }
+    for(int i=0; i<MAX_PERIPHERAL; i++){
+        for(int j=0; j<MAX_OUTPUT; j++){
+            manager_output[i][j] = 0;
+        }
+    }
     
     for(int i=0; i<MAX_PIN; i++){
-        atom_setfloat(manager_input+i, 0);
+        atom_setfloat(manager_return+i, 0);
     }
-    /*for(int i=0; i<MAX_OUTPUT; i++){
-        manager_output[i] = 0;
-    }*/
-    manager_connected = 0;
 }
 
 
-- (t_atom *) manager_getArray{
-    return manager_input;
+- (t_atom *) manager_getArray:(int)index{
+    atom_setfloat(manager_return, index);
+    for(int i=0; i<MAX_PIN; i++){
+        manager_return[i+1] = manager_input[index][i];
+    }
+    return manager_return;
 }
 
-- (bool) manager_isConnected{
+
+
+/*- (bool) manager_isConnected{
     return manager_connected;
-}
+}*/
 
 
 /*- (void) manager_setOutput:(int)index with_value:(bool)value{
@@ -146,8 +157,19 @@ void BLE_interval(BLE * x, long value){
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI{
-    if([peripheral.name isEqualToString:[NSString stringWithUTF8String:"LILYPAD"]]){
+    
+    NSString * uuid = [peripheral.identifier UUIDString];
+    int first = 0;
+    
+    if([manager_uuid_to_index objectForKey:uuid] == nil){
+        first = 1;
+    }
+    
+    if([peripheral.name isEqualToString:[NSString stringWithUTF8String:"LILYPAD"]] && first){
         [manager_peripherals addObject:peripheral];
+        
+        [manager_uuid_to_index setObject:[NSNumber numberWithInt:manager_nb_peripherals] forKey:uuid];
+        manager_nb_peripherals++;
         [manager_centralManager connectPeripheral:peripheral options:nil];
     }
 }
@@ -155,8 +177,8 @@ void BLE_interval(BLE * x, long value){
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
     [peripheral setDelegate:self];
-    [peripheral discoverServices:@[[CBUUID UUIDWithString:@"FE84"]]];
-    manager_connected = 1;
+    [peripheral discoverServices:nil];
+    //manager_connected = 1;
 }
 
 
@@ -165,7 +187,7 @@ void BLE_interval(BLE * x, long value){
 
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
-     manager_connected = 0;
+     //manager_connected = 0;
     [manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
@@ -186,16 +208,19 @@ void BLE_interval(BLE * x, long value){
 
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
+    NSString * uuid = [peripheral.identifier UUIDString];
+    int index = [[manager_uuid_to_index objectForKey:uuid] intValue];
+    
     if((*(float *)([characteristic.value bytes])) == 1){
         for(int i=1; i<=(MAX_PIN/2+1); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
-            atom_setfloat(manager_input+i-1, value);
+            atom_setfloat((t_atom *)manager_input+(index*MAX_PIN)+i-1, value);
         }
     }
     if((*(float *)([characteristic.value bytes])) == 2){
         for(int i=1; i<=(MAX_PIN/2); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
-            atom_setfloat(manager_input+(MAX_PIN/2+1)+i-1, value);
+            atom_setfloat((t_atom *)manager_input+(index*MAX_PIN)+(MAX_PIN/2+1)+i-1, value);
         }
     }
 }
