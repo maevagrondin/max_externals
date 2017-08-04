@@ -15,7 +15,7 @@ void ext_main(void * r){
     addmess((method)BLE_start, "start", A_DEFSYM, 0);
     addmess((method)BLE_stop, "stop", A_DEFSYM, 0);
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
-    //addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
+    addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
 }
 
 
@@ -40,8 +40,10 @@ void BLE_bang(BLE * x){
     for(int i=0; i<MAX_PERIPHERAL; i++){
         outlet_list(x->ble_output, NULL, MAX_PIN+1, [x->ble_manager manager_getArray:i]);
     }
-    /*if([x->ble_manager manager_isConnected])
-        [x->ble_manager manager_sendOutput];*/
+    for(int i=0; i<MAX_PERIPHERAL; i++){
+        if([x->ble_manager manager_isConnected:i])
+            [x->ble_manager manager_sendOutput:i];
+    }
 }
 
 
@@ -57,13 +59,15 @@ void BLE_interval(BLE * x, long value){
     x->ble_interval = value;
 }
 
-/*void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
-    if(ac>MAX_OUTPUT)
-        ac=MAX_OUTPUT;
-    for(int i=0; i<ac; i++){
-        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
+void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
+    if(ac>MAX_OUTPUT+1)
+        ac=MAX_OUTPUT+1;
+    if(av[0].a_w.w_long>=0 && av[0].a_w.w_long<MAX_PERIPHERAL){
+        for(int i=1; i<ac; i++){
+            [x->ble_manager manager_setOutput:av[0].a_w.w_long to_pin:i-1 with_value:av[i].a_w.w_long];
+        }
     }
-}*/
+}
 
 
 /************************************ IMPLEMENTATION OBJET ******************************************/
@@ -91,6 +95,14 @@ void BLE_interval(BLE * x, long value){
     for(int i=0; i<MAX_PIN; i++){
         atom_setfloat(manager_return+i, 0);
     }
+    
+    for(int i=0; i<MAX_PERIPHERAL; i++){
+        manager_connected[i] = 0;
+    }
+    
+    for(int i=0; i<MAX_OUTPUT; i++){
+        manager_set[i] = 0;
+    }
 }
 
 
@@ -104,27 +116,29 @@ void BLE_interval(BLE * x, long value){
 
 
 
-/*- (bool) manager_isConnected{
-    return manager_connected;
-}*/
+- (bool) manager_isConnected:(int)index{
+    return manager_connected[index];
+}
 
 
-/*- (void) manager_setOutput:(int)index with_value:(bool)value{
-    manager_output[index] = value;
-}*/
+- (void) manager_setOutput:(int)index to_pin:(int)pin with_value:(bool)value{
+    manager_output[index][pin] = value;
+}
 
-/*- (void) manager_sendOutput{
-    CBPeripheral * periph = manager_peripherals[0];
+- (void) manager_sendOutput:(int)index{
+    for(int i=0; i<MAX_OUTPUT; i++){
+        manager_set[i] = manager_output[index][i];
+    }
+    CBPeripheral * periph = manager_peripherals[index];
     for(CBService * service in periph.services){
         for(CBCharacteristic * c in service.characteristics){
             if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]]){
-                NSData * data = [NSData dataWithBytes:&manager_output length:sizeof(manager_output)];
+                NSData * data = [NSData dataWithBytes:&manager_set length:sizeof(manager_set)];
                 [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
             }
         }
     }
-}*/
-
+}
 
 
 /************************************ Delegate Methods for central manager **************************/
@@ -178,7 +192,9 @@ void BLE_interval(BLE * x, long value){
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
     [peripheral setDelegate:self];
     [peripheral discoverServices:nil];
-    //manager_connected = 1;
+    NSString * uuid = [peripheral.identifier UUIDString];
+    int index = [[manager_uuid_to_index objectForKey:uuid] intValue];
+    manager_connected[index] = 1;
 }
 
 
@@ -187,7 +203,9 @@ void BLE_interval(BLE * x, long value){
 
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
-     //manager_connected = 0;
+    NSString * uuid = [peripheral.identifier UUIDString];
+    int index = [[manager_uuid_to_index objectForKey:uuid] intValue];
+    manager_connected[index] = 0;
     [manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
