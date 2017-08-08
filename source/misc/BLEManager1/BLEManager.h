@@ -15,6 +15,8 @@
     t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
     bool manager_output[MAX_OUTPUT]; //stores user values (to be sent to peripheral)
     int manager_connected;
+    int manager_address;
+    int manager_rssi;
 }
 
 - (void) manager_new;
@@ -22,6 +24,11 @@
 - (void) manager_setOutput:(int)index with_value:(bool)value;
 - (void) manager_sendOutput;
 - (bool) manager_isConnected;
+- (void) manager_setAddress:(long)addr;
+- (int) manager_getAddress;
+- (int) manager_getRSSI;
+- (void) manager_scanContinuously;
+
 
 @end
 
@@ -33,6 +40,9 @@ typedef struct BLE{
     t_object ble_object;
     Manager * ble_manager;
     void * ble_output;
+    void * ble_rssi_output;
+    void * ble_addr_output;
+    void * ble_msg_outlet;
     void * ble_clock;
     long ble_interval;
 } BLE;
@@ -45,6 +55,7 @@ void BLE_bang(BLE * x);
 void BLE_start(BLE * x);
 void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
+void BLE_setAddress(BLE * x, long addr);
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
 
 

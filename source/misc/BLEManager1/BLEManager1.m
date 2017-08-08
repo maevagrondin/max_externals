@@ -16,6 +16,7 @@ void ext_main(void * r){
     addmess((method)BLE_stop, "stop", A_DEFSYM, 0);
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
     addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
+    addmess((method)BLE_setAddress, "setAddress", A_LONG, 0);
 }
 
 
@@ -29,12 +30,16 @@ void * BLE_new(long value){
     x = (BLE *)newobject(this_class);
     x->ble_manager = [[Manager alloc]init];
     
-    // create the outlet
+    // create the outlets
+    x->ble_addr_output = intout(x);
+    x->ble_rssi_output = intout(x);
     x->ble_output = listout(x);
     
     [x->ble_manager manager_new];
     x->ble_clock = clock_new(x, (method)BLE_bang);
     x->ble_interval = 100;
+    
+    [x->ble_manager manager_setAddress:value];
     
     return (x);
 }
@@ -43,6 +48,9 @@ void * BLE_new(long value){
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
     outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
+    outlet_int(x->ble_rssi_output, [x->ble_manager manager_getRSSI]);
+    outlet_int(x->ble_addr_output, [x->ble_manager manager_getAddress]);
+    [x->ble_manager manager_scanContinuously];
     if([x->ble_manager manager_isConnected])
         [x->ble_manager manager_sendOutput];
 }
@@ -58,6 +66,10 @@ void BLE_stop(BLE * x){
 
 void BLE_interval(BLE * x, long value){
     x->ble_interval = value;
+}
+
+void BLE_setAddress(BLE * x, long addr){
+    [x->ble_manager manager_setAddress:addr];
 }
 
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
@@ -100,6 +112,28 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 - (void) manager_setOutput:(int)index with_value:(bool)value{
     manager_output[index] = value;
 }
+
+- (void) manager_setAddress:(long)addr{
+    manager_address = addr;
+    Object * isObjectAt0 = [manager_peripherals firstObject];
+    if(isObjectAt0 != nil){
+        [manager_centralManager cancelPeripheralConnection:manager_peripherals[0]];
+        [manager_peripherals removeObjectAtIndex:0];
+    }
+}
+
+- (int) manager_getRSSI{
+    return manager_rssi;
+}
+
+- (int) manager_getAddress{
+    return manager_address;
+}
+
+- (void) manager_scanContinuously{
+    [manager_centralManager scanForPeripheralsWithServices:nil options:nil];
+}
+
 
 - (void) manager_sendOutput{
     CBPeripheral * periph = manager_peripherals[0];
@@ -145,8 +179,9 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI{
-    if([peripheral.name isEqualToString:[NSString stringWithUTF8String:"LILYPAD"]]){
-        [manager_peripherals addObject:peripheral];
+    
+    if([peripheral.name isEqualToString:[NSString stringWithFormat:@"%d", manager_address]]){
+        [manager_peripherals insertObject:peripheral atIndex:0];
         [manager_centralManager connectPeripheral:peripheral options:nil];
     }
 }
@@ -165,7 +200,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
      manager_connected = 0;
-    [manager_centralManager connectPeripheral:peripheral options:nil];
+    //[manager_centralManager connectPeripheral:peripheral options:nil];
 }
 
 
@@ -197,6 +232,8 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
             atom_setfloat(manager_array+(MAX_PIN/2+1)+i-1, value);
         }
     }
+    [peripheral readRSSI];
+    manager_rssi = [peripheral.RSSI intValue];
 }
 
 @end
