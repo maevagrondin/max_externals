@@ -28,6 +28,7 @@
 - (int) manager_getAddress;
 - (int) manager_getRSSI;
 - (void) manager_scanContinuously;
+- (void) manager_resetValues;
 
 
 @end
@@ -42,7 +43,7 @@ typedef struct BLE{
     void * ble_output;
     void * ble_rssi_output;
     void * ble_addr_output;
-    void * ble_msg_outlet;
+    void * ble_connected_output;
     void * ble_clock;
     long ble_interval;
 } BLE;

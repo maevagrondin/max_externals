@@ -31,6 +31,7 @@ void * BLE_new(long value){
     x->ble_manager = [[Manager alloc]init];
     
     // create the outlets
+    x->ble_connected_output = intout(x);
     x->ble_addr_output = intout(x);
     x->ble_rssi_output = intout(x);
     x->ble_output = listout(x);
@@ -50,6 +51,7 @@ void BLE_bang(BLE * x){
     outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
     outlet_int(x->ble_rssi_output, [x->ble_manager manager_getRSSI]);
     outlet_int(x->ble_addr_output, [x->ble_manager manager_getAddress]);
+    outlet_int(x->ble_connected_output, [x->ble_manager manager_isConnected]);
     [x->ble_manager manager_scanContinuously];
     if([x->ble_manager manager_isConnected])
         [x->ble_manager manager_sendOutput];
@@ -119,6 +121,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     if(isObjectAt0 != nil){
         [manager_centralManager cancelPeripheralConnection:manager_peripherals[0]];
         [manager_peripherals removeObjectAtIndex:0];
+        [self manager_resetValues];
     }
 }
 
@@ -132,6 +135,13 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 - (void) manager_scanContinuously{
     [manager_centralManager scanForPeripheralsWithServices:nil options:nil];
+}
+
+- (void) manager_resetValues{
+    for(int i=0; i<MAX_PIN; i++){
+        atom_setfloat(manager_array+i, 0);
+    }
+    manager_connected = 0;
 }
 
 
@@ -195,6 +205,10 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
+    for(int i=0; i<MAX_PIN; i++){
+        atom_setfloat(manager_array+i, 0);
+    }
+    manager_connected = 0;
 }
 
 
