@@ -149,7 +149,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     CBPeripheral * periph = manager_peripherals[0];
     for(CBService * service in periph.services){
         for(CBCharacteristic * c in service.characteristics){
-            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]]){
+            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]] || [c.UUID isEqual:[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]]){
                 NSData * data = [NSData dataWithBytes:&manager_output length:sizeof(manager_output)];
                 [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
             }
@@ -222,6 +222,9 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(CBService * service in peripheral.services){
         [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2221"]] forService:service]; //read
         [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2222"]] forService:service]; //write
+        
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff21-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // read bean
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // write bean
     }
 }
 

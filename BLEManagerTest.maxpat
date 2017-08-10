@@ -594,7 +594,7 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 295.0, 59.0, 101.0, 22.0 ],
 					"style" : "",
-					"text" : "setAddress 2017"
+					"text" : "setAddress 1234"
 				}
 
 			}
