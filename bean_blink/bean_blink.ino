@@ -1,9 +1,12 @@
+
 ScratchData lastScratch;
 const char * res = "test";
 float array1[5] = {1,10,11,12,13};
 float array2[4] = {2,99,98,97};
+float received[8] = {0,0,0,0,0,0,0,0};
 
 void setup() {
+  // custom address
   Bean.setBeanName("1234");
 }
 
@@ -26,25 +29,16 @@ void loop() {
     Bean.sleep(500);
   }
   else{
-    Bean.setLed(0,0,0);
     Bean.setScratchData(1, (const unsigned char *) array1, sizeof(array1)); // scratch characteritic 1
     Bean.setScratchData(1, (const unsigned char *) array2, sizeof(array2));
 
+    ScratchData scratch = Bean.readScratchData(2);
+    //bool matched = compareScratch(&thisScratch, &lastScratch);
+    //lastScratch = thisScratch;
 
-   
-  ScratchData thisScratch = Bean.readScratchData(2);
-  bool matched = compareScratch(&thisScratch, &lastScratch);
-  lastScratch = thisScratch;
-
-  if (!matched) {
-    // Set the LED to green for 1 second if the data has changed
-    Bean.setLed(0, 255, 0);
-    Bean.sleep(1000);
-    Bean.setLed(0, 0, 0);
-  } else {
-    // Otherwise, just sleep for one second and check again
-    Bean.sleep(1000);
-  }
+    //if (!matched) {
+      storeScratch(&scratch);
+    //}
   }
 }
 
@@ -62,5 +56,16 @@ bool compareScratch(ScratchData *scratch1, ScratchData *scratch2) {
   
   return true;
 }
+
+void storeScratch(ScratchData *scratch) {
+ if(scratch->length == 8){
+  for(int i=0; i<8; i++){
+    received[i] = scratch->data[i];
+  }
+  Bean.setLed(received[7]*255, received[7]*255, received[7]*255);
+ }
+}
+
+
 
 
