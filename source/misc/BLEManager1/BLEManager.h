@@ -3,8 +3,8 @@
 
 #import <CoreBluetooth/CoreBluetooth.h>
 
-#define MAX_PIN 7
-#define MAX_OUTPUT 8
+#define MAX_INPUT 8
+#define MAX_OUTPUT 10
 
 
 /************************************ OBJECT DECLARATION ********************************************/
@@ -12,11 +12,12 @@
 @interface Manager : NSObject <CBCentralManagerDelegate, CBPeripheralDelegate>{
     CBCentralManager * manager_centralManager;
     NSMutableArray * manager_peripherals;
-    t_atom manager_array[MAX_PIN]; //stores pin values (sent by peripheral)
+    t_atom manager_input[MAX_INPUT]; //stores pin values (sent by peripheral)
     bool manager_output[MAX_OUTPUT]; //stores user values (to be sent to peripheral)
     int manager_connected;
-    int manager_address;
-    int manager_rssi;
+    int manager_address; // address of peripheral authorised to connect to central
+    int manager_rssi; // linked to distance of peripheral
+    int manager_pwm[4];
 }
 
 - (void) manager_new;
@@ -29,6 +30,8 @@
 - (int) manager_getRSSI;
 - (void) manager_scanContinuously;
 - (void) manager_resetValues;
+- (void) manager_setPWM:(int)index with_value:(long)value;
+- (void) manager_sendPWM;
 
 
 @end
@@ -58,7 +61,7 @@ void BLE_stop(BLE * x);
 void BLE_interval(BLE * x, long value);
 void BLE_setAddress(BLE * x, long addr);
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
-
+void BLE_setPWM(BLE * x, Symbol * s, short ac, Atom * av);
 
 
 

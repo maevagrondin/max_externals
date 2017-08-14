@@ -17,6 +17,7 @@ void ext_main(void * r){
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
     addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
     addmess((method)BLE_setAddress, "setAddress", A_LONG, 0);
+    addmess((method)BLE_setPWM, "PWM", A_GIMME, 0);
 }
 
 
@@ -48,13 +49,15 @@ void * BLE_new(long value){
 
 void BLE_bang(BLE * x){
     clock_delay(x->ble_clock, x->ble_interval);
-    outlet_list(x->ble_output, NULL, MAX_PIN, [x->ble_manager manager_getArray]);
+    outlet_list(x->ble_output, NULL, MAX_INPUT, [x->ble_manager manager_getArray]);
     outlet_int(x->ble_rssi_output, [x->ble_manager manager_getRSSI]);
     outlet_int(x->ble_addr_output, [x->ble_manager manager_getAddress]);
     outlet_int(x->ble_connected_output, [x->ble_manager manager_isConnected]);
     [x->ble_manager manager_scanContinuously];
-    if([x->ble_manager manager_isConnected])
+    if([x->ble_manager manager_isConnected]){
         [x->ble_manager manager_sendOutput];
+        [x->ble_manager manager_sendPWM];
+    }
 }
 
 
@@ -74,10 +77,19 @@ void BLE_setAddress(BLE * x, long addr){
     [x->ble_manager manager_setAddress:addr];
 }
 
-void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
-    if(ac>MAX_OUTPUT)
-        ac=MAX_OUTPUT;
+void BLE_setPWM(BLE * x, Symbol * s, short ac, Atom * av){
+    if(ac>3){
+        ac=3;
+    }
     for(int i=0; i<ac; i++){
+        [x->ble_manager manager_setPWM:i+1 with_value: av[i].a_w.w_long];
+    }
+}
+
+void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
+    if(ac>MAX_OUTPUT-1)
+        ac=MAX_OUTPUT-1;
+    for(int i=1; i<ac+1; i++){
         [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
     }
 }
@@ -92,18 +104,22 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     manager_peripherals = [NSMutableArray new];
     
-    for(int i=0; i<MAX_PIN; i++){
-        atom_setfloat(manager_array+i, 0);
+    for(int i=0; i<MAX_INPUT; i++){
+        atom_setfloat(manager_input+i, 0);
     }
     for(int i=0; i<MAX_OUTPUT; i++){
         manager_output[i] = 0;
     }
+    for(int i=1; i<4; i++){
+        manager_pwm[i] = 0;
+    }
+    manager_pwm[0] = 1;
     manager_connected = 0;
 }
 
 
 - (t_atom *) manager_getArray{
-    return manager_array;
+    return manager_input;
 }
 
 - (bool) manager_isConnected{
@@ -138,10 +154,27 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 - (void) manager_resetValues{
-    for(int i=0; i<MAX_PIN; i++){
-        atom_setfloat(manager_array+i, 0);
+    for(int i=0; i<MAX_INPUT; i++){
+        atom_setfloat(manager_input+i, 0);
     }
     manager_connected = 0;
+    manager_rssi = 0;
+}
+
+- (void) manager_setPWM:(int)index with_value:(long)value{
+    manager_pwm[index] = value;
+}
+
+- (void) manager_sendPWM{
+    CBPeripheral * periph = manager_peripherals[0];
+    for(CBService * service in periph.services){
+        for(CBCharacteristic * c in service.characteristics){
+            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]] || [c.UUID isEqual:[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]]){
+                NSData * data = [NSData dataWithBytes:&manager_pwm length:sizeof(manager_pwm)];
+                [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
+            }
+        }
+    }
 }
 
 
@@ -205,8 +238,8 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
-    for(int i=0; i<MAX_PIN; i++){
-        atom_setfloat(manager_array+i, 0);
+    for(int i=0; i<MAX_INPUT; i++){
+        atom_setfloat(manager_input+i, 0);
     }
     manager_connected = 0;
 }
@@ -238,15 +271,15 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
     if((*(float *)([characteristic.value bytes])) == 1){
-        for(int i=1; i<=(MAX_PIN/2+1); i++){
+        for(int i=1; i<=(MAX_INPUT/2); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
-            atom_setfloat(manager_array+i-1, value);
+            atom_setfloat(manager_input+i-1, value);
         }
     }
     if((*(float *)([characteristic.value bytes])) == 2){
-        for(int i=1; i<=(MAX_PIN/2); i++){
+        for(int i=1; i<=(MAX_INPUT/2); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
-            atom_setfloat(manager_array+(MAX_PIN/2+1)+i-1, value);
+            atom_setfloat(manager_input+(MAX_INPUT/2)+i-1, value);
         }
     }
     [peripheral readRSSI];
