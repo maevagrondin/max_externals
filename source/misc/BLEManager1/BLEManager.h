@@ -3,8 +3,8 @@
 
 #import <CoreBluetooth/CoreBluetooth.h>
 
-#define MAX_INPUT 8
-#define MAX_OUTPUT 10
+#define MAX_INPUT 12
+#define MAX_OUTPUT 13
 
 
 /************************************ OBJECT DECLARATION ********************************************/

@@ -90,7 +90,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     if(ac>MAX_OUTPUT-1)
         ac=MAX_OUTPUT-1;
     for(int i=1; i<ac+1; i++){
-        [x->ble_manager manager_setOutput:i with_value:av[i].a_w.w_long];
+        [x->ble_manager manager_setOutput:i with_value:av[i-1].a_w.w_long];
     }
 }
 
@@ -271,15 +271,21 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
     if((*(float *)([characteristic.value bytes])) == 1){
-        for(int i=1; i<=(MAX_INPUT/2); i++){
+        for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+i-1, value);
         }
     }
     if((*(float *)([characteristic.value bytes])) == 2){
-        for(int i=1; i<=(MAX_INPUT/2); i++){
+        for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
-            atom_setfloat(manager_input+(MAX_INPUT/2)+i-1, value);
+            atom_setfloat(manager_input+(MAX_INPUT/3)+i-1, value);
+        }
+    }
+    if((*(float *)([characteristic.value bytes])) == 3){
+        for(int i=1; i<=(MAX_INPUT/3); i++){
+            int value = *(((float *)([characteristic.value bytes]))+i);
+            atom_setfloat(manager_input+2*(MAX_INPUT/3)+i-1, value);
         }
     }
     [peripheral readRSSI];
