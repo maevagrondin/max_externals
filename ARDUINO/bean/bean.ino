@@ -14,7 +14,7 @@
  * The boolean "pwm" equals 1 if the computer is sending PWM values, 0 otherwise
  *
  * Connection inticator:
- * The boolean "connection" equals 1 if the Simblee is connected to a computer (central device), 0 otherwise
+ * The boolean "connected" equals 1 if the Simblee is connected to a computer (central device), 0 otherwise
  *
  * Anything in sections "LIB" must remain unchanged
  * Anything in section "USER" is an example of the use of user arrays (array1, array2, array3, received, pwm_values) and can be changed
@@ -25,21 +25,23 @@
  */
 
 
+
+
+
 /*************************************************************************************************
  * LIB : initialisation
  *************************************************************************************************/
-#include <SimbleeBLE.h>
 
 // max of 20 bytes accepted (5x1 int of 4 bytes)
 float array1[5] = {1,0,0,0,0};
 float array2[5] = {2,0,0,0,0};
-float array3[5] = {3,0,0,0,0};
-
+float array3[5] = {3,0,0,0,0}; 
 bool received[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 int pwm_values[3] = {0,0,0};
-
 bool pwm = 0;
-int connected = 0;
+bool connected = 0;
+
+
 
 
 
@@ -47,84 +49,121 @@ int connected = 0;
 /*************************************************************************************************
  * USER : initialisation of variables and pins
  *************************************************************************************************/
-const int LED = 13;
-const int pause = 1000;
-
-
-void setup(){
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
-  pinMode(3, INPUT);
+ const int pause = 1000;
+ const int pin = 5;
 
 
 
+void setup() {
+  pinMode(pin, OUTPUT);
 
+  
 /*************************************************************************************************
  * LIB : initialisation of BLE advertisement and custom UUID
  *************************************************************************************************/
-  char res[1024];
-  sprintf(res, "%d", SimbleeCOM.getESN());
-  SimbleeBLE.deviceName = res;
-  SimbleeBLE.advertisementInterval = 20;
-  SimbleeBLE.txPowerLevel = -4;
-  SimbleeBLE.customUUID = "2220";
-  SimbleeBLE.begin();
+  Bean.setBeanName("1234");
 }
 
-void loop()
-{
+
+void loop() {
 /*************************************************************************************************
  * USER : set values to send to computer
  *************************************************************************************************/
-  array1[1] = analogRead(3);
-  array1[2] = 1995;
-  array3[4] = 42;
+ if(connected){
+    array1[1] = Bean.getAccelerationX() + 500;
+    array1[2] = Bean.getAccelerationY() + 500;
+    array1[3] = Bean .getAccelerationZ() + 500;
+ }
+  if(!connected){
+    Bean.setLed(255,255,255);
+    delay(pause);
+    Bean.setLed(0,0,0);
+    delay(pause);
+  }
+
+
+
+
+/*************************************************************************************************
+ * LIB
+ * 
+ * Scratch Service UUID: a495ff20-c5b1-4b44-b512-1370f02d74de
+ * 
+ * Scratch Characteritics UUID:
+ * a495ff21-c5b1-4b44-b512-1370f02d74de (scratch 1)
+ * a495ff22-c5b1-4b44-b512-1370f02d74de (scratch 2)
+ * a495ff23-c5b1-4b44-b512-1370f02d74de (scratch 3)
+ * a495ff24-c5b1-4b44-b512-1370f02d74de (scratch 4)
+ * a495ff25-c5b1-4b44-b512-1370f02d74de (scratch 5)
+ *************************************************************************************************/
+
+
 
 
 /*************************************************************************************************
  * LIB: send array1, array2 and array3 to computer
+ * Send data to central device (scratch 1) + read data from central device and store on receive array (scratch 2)
  *************************************************************************************************/
-  if(connected){
+  if(Bean.getConnectionState() == true){
+    connected = 1;
     array1[0] = 1;
     array2[0] = 2;
     array3[0] = 3;
-    SimbleeBLE.send((char *)array1, sizeof(array1));
-    SimbleeBLE.send((char *)array2, sizeof(array2));
-    SimbleeBLE.send((char *)array3, sizeof(array3));
-    SimbleeBLE.connectable = false;
+    
+    // write on scratch characteristic 1
+    Bean.setScratchData(1, (const unsigned char *) array1, sizeof(array1));
+    Bean.setScratchData(1, (const unsigned char *) array2, sizeof(array2));
+    Bean.setScratchData(1, (const unsigned char *) array3, sizeof(array3));
+
+    // read on scratch characteristic 2
+    ScratchData scratch = Bean.readScratchData(2);
+    storeScratch(&scratch);
   }
+  if(Bean.getConnectionState() == false){
+    connected = 0;
+  }
+    
+
 
 /*************************************************************************************************
  * USER : use the values received from the computer to set the LED
  *************************************************************************************************/
-  if(pwm == 0){
-    digitalWrite(LED, received[7]);
+  if(connected){
+    if(pwm == 0){
+      Bean.setLed(received[8]*255, received[8]*255, received[8]*255);
+    }
+    if(pwm == 1){
+      Bean.setLed(pwm_values[0], pwm_values[1], pwm_values[2]);
+    } 
   }
-  if(pwm == 1){
-    analogWrite(LED, pwm_values[0]);
-  }
+
+  
 }
+
+
+
+
+
 
 
 /*************************************************************************************************
  * LIB : store the values received from the computer into array "received" and array "pwm_values"
  *************************************************************************************************/
-void SimbleeBLE_onReceive(char *data, int len){
-  if(data[0] == 0){
-    if(len<=13){
-      for(int i=1; i<len; i++){
-        received[i-1] = data[i];
+void storeScratch(ScratchData *scratch) {
+  if(scratch->data[0] == 0){
+    if(scratch->length <= 13){
+      for(int i=1; i<scratch->length; i++){
+        received[i-1] = scratch->data[i];
       }
     }
   }
-  if(data[0] == 1){
-    int * res= (int *) data;
-    if(sizeof(res) <= 4){
-      for(int i=1; i<sizeof(res); i++){
-        pwm_values[i-1] = res[i];
+  if(scratch->data[0] == 1){
+    if(scratch->length == 16){
+      for(int i=1; i<4; i++){
+        pwm_values[i-1] = (int)scratch->data[i*4];
       }
     }
-    if(res[1] == 0){
+    if(pwm_values[0] == 0 && pwm_values[1] == 0 && pwm_values[2] == 0){
       pwm = 0;
     }
     else{
@@ -134,14 +173,5 @@ void SimbleeBLE_onReceive(char *data, int len){
 }
 
 
-/*************************************************************************************************
- * LIB : connection and deconnection updates
- *************************************************************************************************/
-void SimbleeBLE_onConnect(){
-  connected = 1;
-}
 
-void SimbleeBLE_onDisconnect(){
-  connected = 0;
-}
 

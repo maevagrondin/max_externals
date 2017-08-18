@@ -14,7 +14,7 @@
  * The boolean "pwm" equals 1 if the computer is sending PWM values, 0 otherwise
  *
  * Connection inticator:
- * The boolean "connection" equals 1 if the Simblee is connected to a computer (central device), 0 otherwise
+ * The boolean "connected" equals 1 if the Simblee is connected to a computer (central device), 0 otherwise
  *
  * Anything in sections "LIB" must remain unchanged
  * Anything in section "USER" is an example of the use of user arrays (array1, array2, array3, received, pwm_values) and can be changed
@@ -76,9 +76,17 @@ void loop()
 /*************************************************************************************************
  * USER : set values to send to computer
  *************************************************************************************************/
-  array1[1] = analogRead(3);
-  array1[2] = 1995;
-  array3[4] = 42;
+  if(connected){
+    array1[1] = analogRead(3);
+    array1[2] = 1995;
+    array3[4] = 42;
+  }
+  if(!connected){
+    digitalWrite(LED, HIGH);
+    delay(pause);
+    digitalWrite(LED, LOW);
+    delay(pause);
+  }
 
 
 /*************************************************************************************************
