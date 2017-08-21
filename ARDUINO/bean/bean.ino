@@ -64,10 +64,21 @@ void setup() {
  * LIB : initialisation of BLE advertisement and custom UUID
  *************************************************************************************************/
   Bean.setBeanName("1234");
+  Bean.keepAwake(true);
+  
+  Serial.begin(9600);
+  
 }
 
 
 void loop() {
+
+  BluetoothServices services = Bean.getServices();
+  Serial.println(services.standard);
+  Serial.println();
+  
+
+  
 /*************************************************************************************************
  * USER : set values to send to computer
  *************************************************************************************************/

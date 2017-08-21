@@ -860,9 +860,9 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 130.5, 12.5, 123.0, 22.0 ],
+					"patching_rect" : [ 130.5, 12.5, 109.0, 22.0 ],
 					"style" : "",
-					"text" : "setSampleRate 3000"
+					"text" : "setSampleRate 50"
 				}
 
 			}

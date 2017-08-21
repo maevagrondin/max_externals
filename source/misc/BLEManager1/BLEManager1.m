@@ -148,6 +148,16 @@ void BLE_start(BLE * x){
  * Turns off the clock so that the "bang" function is not executed anymore
  */
 void BLE_stop(BLE * x){
+    [x->ble_manager manager_resetValues];
+    
+    outlet_list(x->ble_output, NULL, MAX_INPUT, [x->ble_manager manager_getArray]);
+    outlet_int(x->ble_rssi_output, [x->ble_manager manager_getRSSI]);
+    outlet_int(x->ble_addr_output, [x->ble_manager manager_getAddress]);
+    outlet_int(x->ble_connected_output, [x->ble_manager manager_isConnected]);
+    outlet_int(x->ble_battery_level_output, [x->ble_manager manager_getBatteryLevel]);
+    outlet_list(x->ble_accelerometer_output, NULL, 3, [x->ble_manager manager_getAccelerometer]);
+    outlet_int(x->ble_temperature_output, [x->ble_manager manager_getTemperature]);
+    
     clock_unset(x->ble_clock);
 }
 
@@ -159,7 +169,9 @@ void BLE_stop(BLE * x){
  * Updates the interval time of the clock
  */
 void BLE_interval(BLE * x, long value){
-    x->ble_interval = value;
+    if(value>=100){
+        x->ble_interval = value;
+    }
 }
 
 
@@ -320,6 +332,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_connected = 0;
     manager_rssi = 0;
     manager_battery_level = 0;
+    manager_temperature = 0;
 }
 
 
