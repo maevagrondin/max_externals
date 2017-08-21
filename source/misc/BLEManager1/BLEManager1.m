@@ -63,6 +63,9 @@ void * BLE_new(long value){
     /*
      * Creation of the outlets
      */
+    x->ble_accelerometer_output = listout(x);
+    x->ble_temperature_output = intout(x);
+    x->ble_battery_level_output = intout(x);
     x->ble_connected_output = intout(x);
     x->ble_addr_output = intout(x);
     x->ble_rssi_output = intout(x);
@@ -107,6 +110,9 @@ void BLE_bang(BLE * x){
     outlet_int(x->ble_rssi_output, [x->ble_manager manager_getRSSI]);
     outlet_int(x->ble_addr_output, [x->ble_manager manager_getAddress]);
     outlet_int(x->ble_connected_output, [x->ble_manager manager_isConnected]);
+    outlet_int(x->ble_battery_level_output, [x->ble_manager manager_getBatteryLevel]);
+    outlet_list(x->ble_accelerometer_output, NULL, 3, [x->ble_manager manager_getAccelerometer]);
+    outlet_int(x->ble_temperature_output, [x->ble_manager manager_getTemperature]);
     
     /*
      * Call the scan function continuously so that new BLE devices can be discovered
@@ -143,7 +149,6 @@ void BLE_start(BLE * x){
  */
 void BLE_stop(BLE * x){
     clock_unset(x->ble_clock);
-    [x->ble_manager manager_resetValues];
 }
 
 
@@ -210,6 +215,8 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     manager_peripherals = [NSMutableArray new];
     manager_connected = 0;
+    manager_battery_level = 0;
+    manager_temperature = 0;
     
     for(int i=0; i<MAX_INPUT; i++){
         atom_setfloat(manager_input+i, 0);
@@ -220,6 +227,9 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_pwm[0] = 1;
     for(int i=1; i<4; i++){
         manager_pwm[i] = 0;
+    }
+    for(int i=0; i<3; i++){
+        atom_setlong(manager_accelerometer+i, 0);
     }
 }
 
@@ -244,6 +254,18 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 - (bool) manager_isConnected{
     return manager_connected;
+}
+
+- (int) manager_getBatteryLevel{
+    return manager_battery_level;
+}
+
+- (t_atom *) manager_getAccelerometer{
+    return manager_accelerometer;
+}
+
+- (int) manager_getTemperature{
+    return manager_temperature;
 }
 
 
@@ -292,8 +314,12 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     for(int i=0; i<MAX_INPUT; i++){
         atom_setfloat(manager_input+i, 0);
     }
+    for(int i=0; i<3; i++){
+        atom_setlong(manager_accelerometer+i, 0);
+    }
     manager_connected = 0;
     manager_rssi = 0;
+    manager_battery_level = 0;
 }
 
 
@@ -449,19 +475,30 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
  * Reads the values of the characteristic and stores them in "manager_input" array
  */
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
+    if((*(float *)([characteristic.value bytes])) == 0){
+        manager_battery_level = *((float *)([characteristic.value bytes])+1);
+    }
     if((*(float *)([characteristic.value bytes])) == 1){
+        for(int i=0; i<3; i++){
+            atom_setlong(manager_accelerometer+i, *(((float *)([characteristic.value bytes]))+i+1));
+        }
+    }
+    if((*(float *)([characteristic.value bytes])) == 2){
+        manager_temperature = *((float *)([characteristic.value bytes])+1);
+    }
+    if((*(float *)([characteristic.value bytes])) == 3){
         for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+i-1, value);
         }
     }
-    if((*(float *)([characteristic.value bytes])) == 2){
+    if((*(float *)([characteristic.value bytes])) == 4){
         for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+(MAX_INPUT/3)+i-1, value);
         }
     }
-    if((*(float *)([characteristic.value bytes])) == 3){
+    if((*(float *)([characteristic.value bytes])) == 5){
         for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+2*(MAX_INPUT/3)+i-1, value);

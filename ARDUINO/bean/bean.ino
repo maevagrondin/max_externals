@@ -33,9 +33,12 @@
  *************************************************************************************************/
 
 // max of 20 bytes accepted (5x1 int of 4 bytes)
-float array1[5] = {1,0,0,0,0};
-float array2[5] = {2,0,0,0,0};
-float array3[5] = {3,0,0,0,0}; 
+float battery_level[2] = {0,0};
+float accelerometer[4] = {1,0,0,0};
+float temperature[2] = {2,0};
+float array1[5] = {3,0,0,0,0};
+float array2[5] = {4,0,0,0,0};
+float array3[5] = {5,0,0,0,0}; 
 bool received[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 int pwm_values[3] = {0,0,0};
 bool pwm = 0;
@@ -50,12 +53,11 @@ bool connected = 0;
  * USER : initialisation of variables and pins
  *************************************************************************************************/
  const int pause = 1000;
- const int pin = 5;
 
 
 
 void setup() {
-  pinMode(pin, OUTPUT);
+  pinMode(A0, INPUT);
 
   
 /*************************************************************************************************
@@ -70,9 +72,7 @@ void loop() {
  * USER : set values to send to computer
  *************************************************************************************************/
  if(connected){
-    array1[1] = Bean.getAccelerationX() + 500;
-    array1[2] = Bean.getAccelerationY() + 500;
-    array1[3] = Bean .getAccelerationZ() + 500;
+    array1[1] = analogRead(A0);
  }
   if(!connected){
     Bean.setLed(255,255,255);
@@ -91,7 +91,7 @@ void loop() {
  * 
  * Scratch Characteritics UUID:
  * a495ff21-c5b1-4b44-b512-1370f02d74de (scratch 1)
- * a495ff22-c5b1-4b44-b512-1370f02d74de (scratch 2)
+ * a495ff22-c5b1-4b44-b512-1370f02d74de (scratch 2) 
  * a495ff23-c5b1-4b44-b512-1370f02d74de (scratch 3)
  * a495ff24-c5b1-4b44-b512-1370f02d74de (scratch 4)
  * a495ff25-c5b1-4b44-b512-1370f02d74de (scratch 5)
@@ -106,11 +106,23 @@ void loop() {
  *************************************************************************************************/
   if(Bean.getConnectionState() == true){
     connected = 1;
-    array1[0] = 1;
-    array2[0] = 2;
-    array3[0] = 3;
+    battery_level[0] = 0;
+    accelerometer[0] = 1;
+    temperature[0] = 2;
+    array1[0] = 3;
+    array2[0] = 4;
+    array3[0] = 5;
+    
+    battery_level[1] = Bean.getBatteryLevel();
+    temperature[1] = Bean.getTemperature();
+    accelerometer[1] = Bean.getAccelerationX() + 500;
+    accelerometer[2] = Bean.getAccelerationY() + 500;
+    accelerometer[3] = Bean.getAccelerationZ() + 500;
     
     // write on scratch characteristic 1
+    Bean.setScratchData(1, (const unsigned char *) battery_level, sizeof(battery_level));
+    Bean.setScratchData(1, (const unsigned char *) accelerometer, sizeof(accelerometer));
+    Bean.setScratchData(1, (const unsigned char *) temperature, sizeof(temperature));
     Bean.setScratchData(1, (const unsigned char *) array1, sizeof(array1));
     Bean.setScratchData(1, (const unsigned char *) array2, sizeof(array2));
     Bean.setScratchData(1, (const unsigned char *) array3, sizeof(array3));

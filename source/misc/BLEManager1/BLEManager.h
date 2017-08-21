@@ -35,6 +35,9 @@
     
     int manager_connected;
     int manager_rssi;
+    t_atom manager_accelerometer[3];
+    int manager_battery_level;
+    int manager_temperature;
 }
 
 - (void) manager_new;
@@ -46,6 +49,9 @@
 - (int) manager_getAddress;
 - (int) manager_getRSSI;
 - (bool) manager_isConnected;
+- (int) manager_getBatteryLevel;
+- (int) manager_getTemperature;
+- (t_atom *) manager_getAccelerometer;
 
 // SET functions
 - (void) manager_setAddress:(long)addr;
@@ -76,6 +82,9 @@ typedef struct BLE{
     void * ble_rssi_output;
     void * ble_addr_output;
     void * ble_connected_output;
+    void * ble_accelerometer_output;
+    void * ble_battery_level_output;
+    void * ble_temperature_output;
     
     // clock information
     void * ble_clock;
