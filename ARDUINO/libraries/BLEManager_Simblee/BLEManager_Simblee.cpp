@@ -3,9 +3,10 @@
 
 
 // max of 20 bytes accepted (5x1 int of 4 bytes)
-float array1[5] = {1,0,0,0,0};
-float array2[5] = {2,0,0,0,0};
-float array3[5] = {3,0,0,0,0};
+float temperature[2] = {2,0};
+float array1[5] = {3,0,0,0,0};
+float array2[5] = {4,0,0,0,0};
+float array3[5] = {5,0,0,0,0};
 
 bool received[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 int pwm_values[3] = {0,0,0};
@@ -35,9 +36,12 @@ void init_BLE(){
  *************************************************************************************************/
 void send_arrays(){
     if(connected){
-        array1[0] = 1;
-        array2[0] = 2;
-        array3[0] = 3;
+        temperature[0] = 2;
+        array1[0] = 3;
+        array2[0] = 4;
+        array3[0] = 5;
+        temperature[1] = Simblee_temperature(CELSIUS);
+        SimbleeBLE.send((char *)temperature, sizeof(temperature));
         SimbleeBLE.send((char *)array1, sizeof(array1));
         SimbleeBLE.send((char *)array2, sizeof(array2));
         SimbleeBLE.send((char *)array3, sizeof(array3));
@@ -65,7 +69,7 @@ void SimbleeBLE_onReceive(char *data, int len){
                 pwm_values[i-1] = res[i];
             }
         }
-        if(res[1] == 0){
+        if(pwm_values[0] == 0 && pwm_values[1] == 0 && pwm_values[2] == 0){
             pwm = 0;
         }
         else{

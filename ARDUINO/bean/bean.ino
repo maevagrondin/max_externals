@@ -7,7 +7,7 @@
  * These values can be used to set the value of a pin or an LED
  *
  * Read PWM values from the computer:
- * The computer can send 3 int values to the Simblee stored in array "pwm_values" at indexes 1, 2 and 3
+ * The computer can send 3 int values to the Simblee stored in array "pwm_values" at indexes 0, 1 and 2
  * These values can be used to control the brightness of an LED
  *
  * PWM indicator:
@@ -16,8 +16,8 @@
  * Connection inticator:
  * The boolean "connected" equals 1 if the Simblee is connected to a computer (central device), 0 otherwise
  *
- * Anything in sections "LIB" must remain unchanged
- * Anything in section "USER" is an example of the use of user arrays (array1, array2, array3, received, pwm_values) and can be changed
+ * Everything in sections "LIB" must remain unchanged
+ * Everything in sections "USER" is an example of the use of user arrays (array1, array2, array3, received, pwm_values) and can be changed
  * The user has 3 sections :
  *  - one for initializing his variables in setup function
  *  - one at the beginning of loop before "array1", "array2" and "array3" are sent
@@ -65,20 +65,11 @@ void setup() {
  *************************************************************************************************/
   Bean.setBeanName("1234");
   Bean.keepAwake(true);
-  
-  Serial.begin(9600);
-  
 }
 
 
 void loop() {
 
-  BluetoothServices services = Bean.getServices();
-  Serial.println(services.standard);
-  Serial.println();
-  
-
-  
 /*************************************************************************************************
  * USER : set values to send to computer
  *************************************************************************************************/
