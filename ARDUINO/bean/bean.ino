@@ -65,6 +65,8 @@ void setup() {
  *************************************************************************************************/
   Bean.setBeanName("1234");
   Bean.keepAwake(true);
+  Bean.enablePairingPin(true);
+  Bean.setPairingPin(111222);
 }
 
 
