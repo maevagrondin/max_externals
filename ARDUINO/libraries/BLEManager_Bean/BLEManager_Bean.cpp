@@ -40,9 +40,9 @@ bool connected = 0;
 /*************************************************************************************************
  * LIB : initialisation of BLE advertisement and custom UUID
  *************************************************************************************************/
-void init_BLE(int addr){
+void init_BLE(unsigned long addr){
     char res[1024];
-    sprintf(res, "%d", addr);
+    sprintf(res, "%lu", addr);
     Bean.setBeanName(res);
     Bean.keepAwake(true);
 }

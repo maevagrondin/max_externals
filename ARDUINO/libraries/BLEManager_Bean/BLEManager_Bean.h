@@ -13,7 +13,7 @@ extern bool pwm;
 extern bool connected;
 
 
-void init_BLE(int addr);
+void init_BLE(unsigned long addr);
 void send_arrays();
 
 #endif

@@ -3,9 +3,12 @@
 
 #import <CoreBluetooth/CoreBluetooth.h>
 
+
+#define AUTHENTICATION_CODE() {9,7,4,8}
+
+
 #define MAX_INPUT 12
 #define MAX_OUTPUT 13
-
 
 
 
@@ -38,6 +41,7 @@
     t_atom manager_accelerometer[3];
     int manager_battery_level;
     int manager_temperature;
+    int manager_authentication[5];
 }
 
 - (void) manager_new;
@@ -61,6 +65,7 @@
 // SEND functions
 - (void) manager_sendOutput;
 - (void) manager_sendPWM;
+- (void) manager_sendAuthenticationCode;
 
 
 @end

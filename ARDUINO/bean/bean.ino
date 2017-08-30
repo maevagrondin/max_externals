@@ -43,9 +43,12 @@ bool received[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 int pwm_values[3] = {0,0,0};
 bool pwm = 0;
 bool connected = 0;
+int authentication_code[4] = {9,7,4,8};
+bool authenticated = 0;
+ScratchData scratch;
 
 
-
+  
 
 
 
@@ -53,6 +56,7 @@ bool connected = 0;
  * USER : initialisation of variables and pins
  *************************************************************************************************/
  const int pause = 1000;
+ const unsigned long address = 145008005;
 
 
 
@@ -63,10 +67,10 @@ void setup() {
 /*************************************************************************************************
  * LIB : initialisation of BLE advertisement and custom UUID
  *************************************************************************************************/
-  Bean.setBeanName("1234");
+  char addr[1024];
+  sprintf(addr, "%lu", address);
+  Bean.setBeanName(addr);
   Bean.keepAwake(true);
-  Bean.enablePairingPin(true);
-  Bean.setPairingPin(111222);
 }
 
 
@@ -78,7 +82,7 @@ void loop() {
  if(connected){
     array1[1] = analogRead(A0);
  }
-  if(!connected){
+ if(!connected){
     Bean.setLed(255,255,255);
     delay(pause);
     Bean.setLed(0,0,0);
@@ -108,8 +112,8 @@ void loop() {
  * LIB: send array1, array2 and array3 to computer
  * Send data to central device (scratch 1) + read data from central device and store on receive array (scratch 2)
  *************************************************************************************************/
-  if(Bean.getConnectionState() == true){
-    connected = 1;
+  connected = Bean.getConnectionState();
+  if(authenticated){
     battery_level[0] = 0;
     accelerometer[0] = 1;
     temperature[0] = 2;
@@ -131,12 +135,17 @@ void loop() {
     Bean.setScratchData(1, (const unsigned char *) array2, sizeof(array2));
     Bean.setScratchData(1, (const unsigned char *) array3, sizeof(array3));
 
-    // read on scratch characteristic 2
-    ScratchData scratch = Bean.readScratchData(2);
+    // read on scratch characteristic 2 (received) and 3 (pwm_values) 
+    scratch = Bean.readScratchData(2);
     storeScratch(&scratch);
+    scratch = Bean.readScratchData(3);
+    storeScratch(&scratch); 
   }
-  if(Bean.getConnectionState() == false){
-    connected = 0;
+
+  if(connected){
+    // read on scratch characteristic 4 (authentication code)
+    scratch = Bean.readScratchData(4);
+    storeScratch(&scratch); 
   }
     
 
@@ -144,7 +153,7 @@ void loop() {
 /*************************************************************************************************
  * USER : use the values received from the computer to set the LED
  *************************************************************************************************/
-  if(connected){
+  if(authenticated){
     if(pwm == 0){
       Bean.setLed(received[8]*255, received[8]*255, received[8]*255);
     }
@@ -167,7 +176,7 @@ void loop() {
  *************************************************************************************************/
 void storeScratch(ScratchData *scratch) {
   if(scratch->data[0] == 0){
-    if(scratch->length <= 13){
+    if(scratch->length == 13){
       for(int i=1; i<scratch->length; i++){
         received[i-1] = scratch->data[i];
       }
@@ -184,6 +193,22 @@ void storeScratch(ScratchData *scratch) {
     }
     else{
       pwm = 1;
+    }
+  }
+  if(scratch->data[0] == 2){
+    if(scratch->length == 20){
+      int counter = 0;
+      for(int i=0; i<4; i++){
+        if((int)scratch->data[(i+1)*4] == authentication_code[i]){
+          counter++;
+        }
+      }
+      if(counter == 4){
+        authenticated = 1;
+      }
+      else{
+        authenticated = 0;
+      }
     }
   }
 }

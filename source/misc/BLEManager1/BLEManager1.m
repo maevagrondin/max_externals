@@ -98,6 +98,8 @@ void * BLE_new(long value){
  * Also executed everytime the clock goes off
  */
 void BLE_bang(BLE * x){
+    static int first = 1;
+    
     /*
      * Reset the clock so that it goes off after x->ble_interval milliseconds
      */
@@ -124,8 +126,9 @@ void BLE_bang(BLE * x){
      * Send values continuously to the connected device (if there is a connected device)
      */
     if([x->ble_manager manager_isConnected]){
-        [x->ble_manager manager_sendOutput];
+        [x->ble_manager manager_sendAuthenticationCode];
         [x->ble_manager manager_sendPWM];
+        [x->ble_manager manager_sendOutput];
     }
 }
 
@@ -229,6 +232,12 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_connected = 0;
     manager_battery_level = 0;
     manager_temperature = 0;
+    
+    manager_authentication[0] = 2;
+    int tab[4] = AUTHENTICATION_CODE();
+    for(int i=0; i<4; i++){
+        manager_authentication[i+1] = tab[i];
+    }
     
     for(int i=0; i<MAX_INPUT; i++){
         atom_setfloat(manager_input+i, 0);
@@ -346,7 +355,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     CBPeripheral * periph = manager_peripherals[0];
     for(CBService * service in periph.services){
         for(CBCharacteristic * c in service.characteristics){
-            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]] || [c.UUID isEqual:[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]]){
+            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]] || [c.UUID isEqual:[CBUUID UUIDWithString:@"a495ff23-c5b1-4b44-b512-1370f02d74de"]]){
                 NSData * data = [NSData dataWithBytes:&manager_pwm length:sizeof(manager_pwm)];
                 [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
             }
@@ -368,6 +377,19 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
         for(CBCharacteristic * c in service.characteristics){
             if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]] || [c.UUID isEqual:[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]]){
                 NSData * data = [NSData dataWithBytes:&manager_output length:sizeof(manager_output)];
+                [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
+            }
+        }
+    }
+}
+
+
+- (void) manager_sendAuthenticationCode{
+    CBPeripheral * periph = manager_peripherals[0];
+    for(CBService * service in periph.services){
+        for(CBCharacteristic * c in service.characteristics){
+            if([c.UUID isEqual:[CBUUID UUIDWithString:@"2222"]] || [c.UUID isEqual:[CBUUID UUIDWithString:@"a495ff24-c5b1-4b44-b512-1370f02d74de"]]){
+                NSData * data = [NSData dataWithBytes:&manager_authentication length:sizeof(manager_authentication)];
                 [periph writeValue:data forCharacteristic:c type:CBCharacteristicWriteWithoutResponse];
             }
         }
@@ -466,7 +488,9 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
         [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"2222"]] forService:service]; //write simblee
         
         [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff21-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // read bean
-        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // write bean
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff22-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // write bean output
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff23-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // write bean pwm
+        [peripheral discoverCharacteristics:@[[CBUUID UUIDWithString:@"a495ff24-c5b1-4b44-b512-1370f02d74de"]] forService:service]; // write bean authentication code
     }
 }
 
