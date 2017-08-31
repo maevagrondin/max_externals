@@ -1,23 +1,42 @@
 /*
+ * Address of board:
+ * The address of the board is the ESN (Electronic Serial Number) of the board
+ * It can be retrieved using Serial.println(SimbleeCOM.getESN())
+ * This address must be used in the Max Object BLEManager to recognize the board
+ * 
+ * 
  * Send values to the computer:
  * The user must place int or float values into "array1", "array2" or "array3" at indexes 1, 2, 3 and 4 (3x4=12 values in total)
+ * These values are already initialized with 0
+ *
  *
  * Read values from the computer:
- * The computer can send 12 boolean values to the Simblee stored in array "received" at indexes between 0 and 11
- * These values can be used to set the value of a pin or an LED
+ * The computer can send 12 boolean values to the board stored in array "received" at indexes between 0 and 11
+ * E.G These values can be used to set the value of a pin or an LED
+ *
  *
  * Read PWM values from the computer:
- * The computer can send 3 int values to the Simblee stored in array "pwm_values" at indexes 0, 1 and 2
+ * The computer can send 3 int values to the board stored in array "pwm_values" at indexes 0, 1 and 2
  * These values can be used to control the brightness of an LED
+ *
  *
  * PWM indicator:
  * The boolean "pwm" equals 1 if the computer is sending PWM values, 0 otherwise
  *
- * Connection inticator:
- * The boolean "connection" equals 1 if the Simblee is connected to a computer (central device), 0 otherwise
+ *
+ * Connection indicator:
+ * The boolean "connected" equals 1 if the board is connected to a computer (central device), 0 otherwise
+ * 
+ * 
+ * Authentication indicator:
+ * The boolean "authenticated" equals 1 if the board is connected to the right Max Object (BLEManager)
+ * The board will start sending its values to the central device only once the central device is authenticated
+ * The board will start reading values from the central device only once the central device is authenticated
+ * The board won't send any values if the central device is connected but not authenticated
+ *
  *
  * Everything in sections "LIB" must remain unchanged
- * Everything in sections "USER" is an example of the use of user arrays (array1, array2, array3, received, pwm_values) and can be changed
+ * Everything in sections "USER" is an example of the use of indicators (connected, authenticated, pwm) and user arrays (array1, array2, array3, received, pwm_values) and can be changed
  * The user has 3 sections :
  *  - one for initializing his variables in setup function
  *  - one at the beginning of loop before "array1", "array2" and "array3" are sent
@@ -30,7 +49,7 @@
  *************************************************************************************************/
 #include <SimbleeBLE.h>
 
-// max of 20 bytes accepted (5x1 int of 4 bytes)
+// max of 20 bytes accepted in arrays to send (5x1 int of 4 bytes)
 float temperature[2] = {2,0};
 float array1[5] = {3,0,0,0,0};
 float array2[5] = {4,0,0,0,0};
@@ -72,8 +91,12 @@ void setup(){
   SimbleeBLE.txPowerLevel = -4;
   SimbleeBLE.customUUID = "2220";
   SimbleeBLE.begin();
-  Serial.begin(9600);
 }
+
+
+
+
+
 
 void loop()
 {
@@ -128,23 +151,28 @@ void loop()
 }
 
 
+
+
+
+
+
 /*************************************************************************************************
  * LIB : store the values received from the computer into array "received" and array "pwm_values"
  *************************************************************************************************/
 void SimbleeBLE_onReceive(char *data, int len){
-  if(data[0] == 0){
-    if(len<=13){
-      for(int i=1; i<len; i++){
-        received[i-1] = data[i];
-      }
+
+  // Boolean array received from the BLEManager, indexed by 0, contains 12 values
+  if(data[0] == 0 && len == 13){
+    for(int i=1; i<len; i++){
+      received[i-1] = data[i];
     }
   }
-  if(data[0] == 1){
+
+  // Int array received from the BLEManager, indexed by 1, contains 3 values
+  if(data[0] == 1 && len == 16){
     int * res= (int *) data;
-    if(sizeof(res) <= 4){
-      for(int i=1; i<sizeof(res); i++){
-        pwm_values[i-1] = res[i];
-      }
+    for(int i=1; i<4; i++){
+      pwm_values[i-1] = res[i];
     }
     if(pwm_values[0] == 0 && pwm_values[1] == 0 && pwm_values[2] == 0){
       pwm = 0;
@@ -153,22 +181,21 @@ void SimbleeBLE_onReceive(char *data, int len){
       pwm = 1;
     }
   }
-  if(data[0] == 2){
+
+  // Int array received from the BLEManagerm indexed by 2, contains 4 values
+  if(data[0] == 2 && len == 20){
     int * res = (int *) data;
-    Serial.println(len);
-    if(len == 20){
-      int counter = 0;
-      for(int i=0; i<4; i++){
-        if(res[i+1] == authentication_code[i]){
-          counter++;
-        }
+    int counter = 0;
+    for(int i=0; i<4; i++){
+      if(res[i+1] == authentication_code[i]){
+        counter++;
       }
-      if(counter == 4){
-        authenticated = 1;
-      }
-      else{
-        authenticated = 0;
-      }
+    }
+    if(counter == 4){
+      authenticated = 1;
+    }
+    else{
+      authenticated = 0;
     }
   }
 }
@@ -184,3 +211,5 @@ void SimbleeBLE_onConnect(){
 void SimbleeBLE_onDisconnect(){
   connected = 0;
 }
+
+

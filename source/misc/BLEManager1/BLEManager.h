@@ -1,7 +1,12 @@
 #ifndef BLEManager_h
 #define BLEManager_h
 
+
 #import <CoreBluetooth/CoreBluetooth.h>
+#include <objc/runtime.h>
+#include <Foundation/Foundation.h>
+#include <string.h>
+#include "ext.h"
 
 
 #define AUTHENTICATION_CODE() {9,7,4,8}
@@ -36,13 +41,20 @@
     // Address of peripheral authorised to connect to central
     int manager_address;
     
+    // Authentication code (to be sent to peripherals in order to be authorized to receive their values)
+    // First element always equals 2 (manager_authentification[0]==2)
+    int manager_authentication[5];
+    
+    // Other values received from the peripheral
     int manager_connected;
     int manager_rssi;
     t_atom manager_accelerometer[3];
     int manager_battery_level;
     int manager_temperature;
-    int manager_authentication[5];
 }
+
+
+
 
 - (void) manager_new;
 - (void) manager_scanContinuously;

@@ -1,9 +1,4 @@
-#include "ext.h"
 #include "BLEManager.h"
-#include <objc/runtime.h>
-#include <Foundation/Foundation.h>
-#include <string.h>
-
 
 
 
@@ -98,7 +93,6 @@ void * BLE_new(long value){
  * Also executed everytime the clock goes off
  */
 void BLE_bang(BLE * x){
-    static int first = 1;
     
     /*
      * Reset the clock so that it goes off after x->ble_interval milliseconds
@@ -218,9 +212,17 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 
+
+
+
+
+
 /************************************ BLE MANAGER OBJECT ******************************************/
 
+
+
 @implementation Manager
+
 
 /*
  * Initialization function for the Manager object
@@ -233,22 +235,30 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     manager_battery_level = 0;
     manager_temperature = 0;
     
+    
     manager_authentication[0] = 2;
     int tab[4] = AUTHENTICATION_CODE();
     for(int i=0; i<4; i++){
         manager_authentication[i+1] = tab[i];
     }
     
+    
     for(int i=0; i<MAX_INPUT; i++){
         atom_setfloat(manager_input+i, 0);
     }
+    
+    
     for(int i=0; i<MAX_OUTPUT; i++){
         manager_output[i] = 0;
     }
+    
+    
     manager_pwm[0] = 1;
     for(int i=1; i<4; i++){
         manager_pwm[i] = 0;
     }
+    
+    
     for(int i=0; i<3; i++){
         atom_setlong(manager_accelerometer+i, 0);
     }
@@ -292,6 +302,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 
+
 /*
  * SET functions
  */
@@ -302,6 +313,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 - (void) manager_setPWM:(int)index with_value:(long)value{
     manager_pwm[index] = value;
 }
+
 
 
 
@@ -322,9 +334,12 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 
+
 - (void) manager_scanContinuously{
     [manager_centralManager scanForPeripheralsWithServices:nil options:nil];
 }
+
+
 
 
 
@@ -346,10 +361,12 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 
+
+
 /*
  * Send "manager_pwm" array to the write characteristic of the connected device
  * Write characteristic for Simblee : 2222
- * Write characteristic for Bean : a495ff22-c5b1-4b44-b512-1370f02d74de
+ * Write characteristic for Bean : a495ff23-c5b1-4b44-b512-1370f02d74de
  */
 - (void) manager_sendPWM{
     CBPeripheral * periph = manager_peripherals[0];
@@ -384,6 +401,13 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 
+
+
+/*
+ * Send "manager_authentication" array to the write characteristic of the connected device
+ * Write characteristic for Simblee : 2224
+ * Write characteristic for Bean : a495ff22-c5b1-4b44-b512-1370f02d74de
+ */
 - (void) manager_sendAuthenticationCode{
     CBPeripheral * periph = manager_peripherals[0];
     for(CBService * service in periph.services){
@@ -395,6 +419,11 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
         }
     }
 }
+
+
+
+
+
 
 
 
@@ -432,6 +461,8 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 }
 
 
+
+
 /*
  * Executed when a peripheral has been discovered by the scan function
  * Connects to the peripheral if it has the right address (the peripheral must be advertising its address)
@@ -443,6 +474,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
         [manager_centralManager connectPeripheral:peripheral options:nil];
     }
 }
+
 
 
 
@@ -458,6 +490,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 
+
 /*
  * Executed if the connection to the peripheral has failed
  */
@@ -468,6 +501,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 
 
 
+
 /*
  * Executed if the connection with the peripheral has expired
  */
@@ -475,6 +509,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     [self  manager_resetValues];
      manager_connected = 0;
 }
+
 
 
 
@@ -507,40 +542,57 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     }
 }
 
+
+
+
 /*
  * Executed when a charcateristic has been updated by the peripheral and when the central manager has subscribed to this characteristic
  * Reads the values of the characteristic and stores them in "manager_input" array
  */
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
+    
+    // battery level array indexed by 0, contains 1 value
     if((*(float *)([characteristic.value bytes])) == 0){
         manager_battery_level = *((float *)([characteristic.value bytes])+1);
     }
+    
+    // accelerometer array indexed by 1, contains 3 values
     if((*(float *)([characteristic.value bytes])) == 1){
         for(int i=0; i<3; i++){
             atom_setlong(manager_accelerometer+i, *(((float *)([characteristic.value bytes]))+i+1));
         }
     }
+    
+    // temperature array indexed by 2, contains 1 value
     if((*(float *)([characteristic.value bytes])) == 2){
         manager_temperature = *((float *)([characteristic.value bytes])+1);
     }
+    
+    // inputs array indexed by 3, contains 4 values
     if((*(float *)([characteristic.value bytes])) == 3){
         for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+i-1, value);
         }
     }
+    
+    // inputs array indexed by 4, contains 4 values
     if((*(float *)([characteristic.value bytes])) == 4){
         for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+(MAX_INPUT/3)+i-1, value);
         }
     }
+    
+    // inputs array indexed by 5, contains 4 values
     if((*(float *)([characteristic.value bytes])) == 5){
         for(int i=1; i<=(MAX_INPUT/3); i++){
             int value = *(((float *)([characteristic.value bytes]))+i);
             atom_setfloat(manager_input+2*(MAX_INPUT/3)+i-1, value);
         }
     }
+    
+    // retrieve RSSI value of peripheral
     [peripheral readRSSI];
     manager_rssi = [peripheral.RSSI intValue];
 }

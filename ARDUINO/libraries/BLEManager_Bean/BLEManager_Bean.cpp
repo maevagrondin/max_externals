@@ -1,6 +1,6 @@
 #include "BLEManager_Bean.h"
 
-#include <Bean.h>
+
 
 
 /*************************************************************************************************
@@ -20,7 +20,7 @@
 
 
 
-// max of 20 bytes accepted (5x1 int of 4 bytes)
+// max of 20 bytes accepted in arrays to send (5x1 int of 4 bytes)
 float battery_level[2] = {0,0};
 float accelerometer[4] = {1,0,0,0};
 float temperature[2] = {2,0};
@@ -31,6 +31,10 @@ bool received[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 int pwm_values[3] = {0,0,0};
 bool pwm = 0;
 bool connected = 0;
+int authentication_code[4] = {9,7,4,8};
+bool authenticated = 0;
+ScratchData scratch;
+
 
 
 
@@ -55,24 +59,40 @@ void init_BLE(unsigned long addr){
  * LIB : store the values received from the computer into array "received" and array "pwm_values"
  *************************************************************************************************/
 void storeScratch(ScratchData *scratch) {
-    if(scratch->data[0] == 0){
-        if(scratch->length <= 13){
-            for(int i=1; i<scratch->length; i++){
-                received[i-1] = scratch->data[i];
-            }
+    
+    // Boolean array received from the BLEManager, indexed by 0, contains 12 values
+    if(scratch->data[0] == 0 && scratch->length == 13){
+        for(int i=1; i<scratch->length; i++){
+            received[i-1] = scratch->data[i];
         }
     }
-    if(scratch->data[0] == 1){
-        if(scratch->length == 16){
-            for(int i=1; i<4; i++){
-                pwm_values[i-1] = (int)scratch->data[i*4];
-            }
+    
+    // Int array received from the BLEManager, indexed by 1, contains 3 values
+    if(scratch->data[0] == 1 && scratch->length == 16){
+        for(int i=1; i<4; i++){
+            pwm_values[i-1] = (int)scratch->data[i*4];
         }
         if(pwm_values[0] == 0 && pwm_values[1] == 0 && pwm_values[2] == 0){
             pwm = 0;
         }
         else{
             pwm = 1;
+        }
+    }
+    
+    // Int array received from the BLEManagerm indexed by 2, contains 4 values
+    if(scratch->data[0] == 2 && scratch->length == 20){
+        int counter = 0;
+        for(int i=0; i<4; i++){
+            if((int)scratch->data[(i+1)*4] == authentication_code[i]){
+                counter++;
+            }
+        }
+        if(counter == 4){
+            authenticated = 1;
+        }
+        else{
+            authenticated = 0;
         }
     }
 }
@@ -86,8 +106,8 @@ void storeScratch(ScratchData *scratch) {
  * Send data to central device (scratch 1) + read data from central device and store on receive array (scratch 2)
  *************************************************************************************************/
 void send_arrays(){
-    if(Bean.getConnectionState() == true){
-        connected = 1;
+    connected = Bean.getConnectionState();
+    if(authenticated){
         battery_level[0] = 0;
         accelerometer[0] = 1;
         temperature[0] = 2;
@@ -109,12 +129,17 @@ void send_arrays(){
         Bean.setScratchData(1, (const unsigned char *) array2, sizeof(array2));
         Bean.setScratchData(1, (const unsigned char *) array3, sizeof(array3));
         
-        // read on scratch characteristic 2
-        ScratchData scratch = Bean.readScratchData(2);
+        // read on scratch characteristic 2 (received) and 3 (pwm_values)
+        scratch = Bean.readScratchData(2);
+        storeScratch(&scratch);
+        scratch = Bean.readScratchData(3);
         storeScratch(&scratch);
     }
-    if(Bean.getConnectionState() == false){
-        connected = 0;
+    
+    if(connected){
+        // read on scratch characteristic 4 (authentication code)
+        scratch = Bean.readScratchData(4);
+        storeScratch(&scratch); 
     }
 }
 
