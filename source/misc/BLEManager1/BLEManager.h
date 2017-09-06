@@ -9,7 +9,7 @@
 #include "ext.h"
 
 
-#define AUTHENTICATION_CODE() {9,7,4,8}
+#define AUTH_CODE() {9,7,4,8}
 
 
 #define MAX_INPUT 12
@@ -120,7 +120,6 @@ void BLE_interval(BLE * x, long value);
 void BLE_setAddress(BLE * x, long addr);
 void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av);
 void BLE_setPWM(BLE * x, Symbol * s, short ac, Atom * av);
-
 
 
 #endif

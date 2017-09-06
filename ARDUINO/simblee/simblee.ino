@@ -140,12 +140,12 @@ void loop()
  *************************************************************************************************/
   if(authenticated){
     if(pwm == 0){
-      digitalWrite(LED, received[7]);
-      digitalWrite(15, received[0]);
+      digitalWrite(LED, received[0]);
+      digitalWrite(15, received[1]);
     }
     if(pwm == 1){
-      analogWrite(LED, pwm_values[0]);
-      analogWrite(15, pwm_values[1]);
+      analogWrite(LED, pwm_values[2]);
+      analogWrite(15, pwm_values[0]);
     }
   }
 }

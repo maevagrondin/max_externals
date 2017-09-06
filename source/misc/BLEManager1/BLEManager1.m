@@ -31,7 +31,7 @@ void ext_main(void * r){
     addmess((method)BLE_interval, "setSampleRate", A_LONG, 0);
     addmess((method)BLE_setOutput, "setOutput", A_GIMME, 0);
     addmess((method)BLE_setAddress, "setAddress", A_LONG, 0);
-    addmess((method)BLE_setPWM, "PWM", A_GIMME, 0);
+    addmess((method)BLE_setPWM, "setPWM", A_GIMME, 0);
 }
 
 
@@ -237,7 +237,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
     
     
     manager_authentication[0] = 2;
-    int tab[4] = AUTHENTICATION_CODE();
+    int tab[4] = AUTH_CODE();
     for(int i=0; i<4; i++){
         manager_authentication[i+1] = tab[i];
     }
@@ -313,6 +313,7 @@ void BLE_setOutput(BLE * x, Symbol * s, short ac, Atom * av){
 - (void) manager_setPWM:(int)index with_value:(long)value{
     manager_pwm[index] = value;
 }
+
 
 
 

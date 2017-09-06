@@ -67,14 +67,12 @@ bool authenticated = 0;
 ScratchData scratch;
 
 
-  
-
 
 
 /*************************************************************************************************
  * USER : initialisation of variables and pins
  *************************************************************************************************/
-#define ADDRESS 145003089
+#define ADDRESS 145008005
 const int pause = 1000;
 
 
@@ -164,7 +162,8 @@ void loop() {
     storeScratch(&scratch); 
   }
 
-  if(connected){
+
+  if(!authenticated){
     // read on scratch characteristic 4 (authentication code)
     scratch = Bean.readScratchData(4);
     storeScratch(&scratch); 
@@ -184,7 +183,6 @@ void loop() {
     } 
   }
 
-  
 }
 
 
@@ -218,7 +216,7 @@ void storeScratch(ScratchData *scratch) {
     }
   }
 
-  // Int array received from the BLEManagerm indexed by 2, contains 4 values
+  // Int array received from the BLEManager indexed by 2, contains 4 values
   if(scratch->data[0] == 2 && scratch->length == 20){
     int counter = 0;
     for(int i=0; i<4; i++){
