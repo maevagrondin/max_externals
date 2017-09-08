@@ -3,6 +3,8 @@
 
 #include <SimbleeBLE.h>
 
+extern float battery_level[2];
+extern float accelerometer[4];
 extern float temperature[2];
 extern float array1[5];
 extern float array2[5];

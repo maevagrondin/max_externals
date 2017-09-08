@@ -92,7 +92,7 @@ void loop() {
  *************************************************************************************************/
   if(authenticated){
     if(pwm == 0){
-      Bean.setLed(received[8]*255, received[8]*255, received[8]*255);
+      Bean.setLed(received[1]*255, received[1]*255, received[1]*255);
     }
     if(pwm == 1){
       Bean.setLed(pwm_values[0], pwm_values[1], pwm_values[2]);

@@ -69,6 +69,7 @@ ScratchData scratch;
 
 
 
+
 /*************************************************************************************************
  * USER : initialisation of variables and pins
  *************************************************************************************************/
@@ -80,6 +81,7 @@ const int pause = 1000;
 
 void setup() {
   pinMode(A0, INPUT);
+  
 
   
 /*************************************************************************************************
@@ -133,6 +135,7 @@ void loop() {
  * Send data to central device (scratch 1) + read data from central device and store on receive array (scratch 2)
  *************************************************************************************************/
   connected = Bean.getConnectionState();
+
   if(authenticated){
     battery_level[0] = 0;
     accelerometer[0] = 1;
@@ -140,7 +143,7 @@ void loop() {
     array1[0] = 3;
     array2[0] = 4;
     array3[0] = 5;
-    
+
     battery_level[1] = Bean.getBatteryLevel();
     temperature[1] = Bean.getTemperature();
     accelerometer[1] = Bean.getAccelerationX() + 500;
@@ -176,15 +179,13 @@ void loop() {
  *************************************************************************************************/
   if(authenticated){
     if(pwm == 0){
-      Bean.setLed(received[8]*255, received[8]*255, received[8]*255);
+      Bean.setLed(received[1]*255, received[1]*255, received[1]*255);
     }
     if(pwm == 1){
       Bean.setLed(pwm_values[0], pwm_values[1], pwm_values[2]);
     } 
   }
-
 }
-
 
 
 
@@ -217,6 +218,7 @@ void storeScratch(ScratchData *scratch) {
   }
 
   // Int array received from the BLEManager indexed by 2, contains 4 values
+  // Check the authentication code sent by the Max object
   if(scratch->data[0] == 2 && scratch->length == 20){
     int counter = 0;
     for(int i=0; i<4; i++){

@@ -2,6 +2,8 @@
 
 
 // max of 20 bytes accepted in arrays to send (5x1 int of 4 bytes)
+float battery_level[2] = {0,0};
+float accelerometer[4] = {1,0,0,0};
 float temperature[2] = {2,0};
 float array1[5] = {3,0,0,0,0};
 float array2[5] = {4,0,0,0,0};
@@ -35,15 +37,22 @@ void init_BLE(){
  *************************************************************************************************/
 void send_arrays(){
     if(authenticated){
+        battery_level[0] = 0;
+        accelerometer[0] = 1;
         temperature[0] = 2;
         array1[0] = 3;
         array2[0] = 4;
         array3[0] = 5;
+        
         temperature[1] = Simblee_temperature(CELSIUS);
+        
+        SimbleeBLE.send((char *)battery_level, sizeof(battery_level));
+        SimbleeBLE.send((char *)accelerometer, sizeof(accelerometer));
         SimbleeBLE.send((char *)temperature, sizeof(temperature));
         SimbleeBLE.send((char *)array1, sizeof(array1));
         SimbleeBLE.send((char *)array2, sizeof(array2));
         SimbleeBLE.send((char *)array3, sizeof(array3));
+        
         SimbleeBLE.connectable = false;
     }
 }
